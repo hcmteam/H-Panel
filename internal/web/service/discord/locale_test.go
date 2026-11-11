@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestDiscordMessagesFollowDiscordLang(t *testing.T) {
+func TestDiscordMessagesFallbackToEnglishWhenLocaleUnavailable(t *testing.T) {
 	const lang = "ru-RU"
 	settingService := setupTestDB(t)
 	_ = settingService.SetDiscordLang(lang)
@@ -88,11 +88,8 @@ func TestDiscordMessagesFollowDiscordLang(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.key, func(t *testing.T) {
 			want := locale.I18nForLang(lang, tc.key)
-			if want == locale.I18nForLang("en-US", tc.key) {
-				t.Fatalf("%s has no distinct %s translation", tc.key, lang)
-			}
 			if got := tc.render(t); got != want {
-				t.Fatalf("title = %q, want the %s text %q", got, lang, want)
+				t.Fatalf("title = %q, want the English fallback %q", got, want)
 			}
 		})
 	}

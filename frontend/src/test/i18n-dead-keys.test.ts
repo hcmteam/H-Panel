@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /*
- * Guards the 14-locale translation set: every key in en-US must be
+ * Guards the English-only translation dictionary: every key in en-US must be
  * referenced somewhere in the frontend or Go sources (dead keys accumulate
  * silently — this test deleted over two hundred of them when it was
  * introduced), and every locale must carry exactly the en-US key set
@@ -77,9 +77,7 @@ describe('i18n keys', () => {
     const dead = enKeys.filter(
       (key) => !tokens.has(key) && !prefixes.some((p) => key.startsWith(p)),
     );
-    expect(dead, `dead i18n keys (delete from all 14 locales):\n  ${dead.join('\n  ')}`).toEqual(
-      [],
-    );
+    expect(dead, `dead i18n keys (delete from en-US):\n  ${dead.join('\n  ')}`).toEqual([]);
   });
 
   it('every literal t() key is an en-US string', () => {
@@ -94,17 +92,8 @@ describe('i18n keys', () => {
     ).toEqual([]);
   });
 
-  it('every locale carries exactly the en-US key set', () => {
-    const enSet = new Set(enKeys);
-    for (const file of readdirSync(translationDir)) {
-      if (!file.endsWith('.json') || file === 'en-US.json') continue;
-      const keys = new Set(
-        flattenKeys(JSON.parse(readFileSync(join(translationDir, file), 'utf8'))),
-      );
-      const missing = enKeys.filter((k) => !keys.has(k));
-      const orphans = [...keys].filter((k) => !enSet.has(k));
-      expect(missing, `${file} is missing keys:\n  ${missing.join('\n  ')}`).toEqual([]);
-      expect(orphans, `${file} has keys absent from en-US:\n  ${orphans.join('\n  ')}`).toEqual([]);
-    }
+  it('only ships the English translation dictionary', () => {
+    const localeFiles = readdirSync(translationDir).filter((file) => file.endsWith('.json'));
+    expect(localeFiles).toEqual(['en-US.json']);
   });
 });

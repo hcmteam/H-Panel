@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// Screen readers choose their voice from <html lang>; the shipped html says "en"
-// for every locale, so NVDA read Persian panels with an English voice (s-ui#1293).
-describe('readyI18n page language', () => {
+describe('English-only document language', () => {
   afterEach(() => {
     document.cookie = 'lang=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
     document.cookie = 'subLang=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
@@ -12,17 +10,18 @@ describe('readyI18n page language', () => {
   it.each([
     ['panel', 'lang', 'fa-IR'],
     ['subscription', 'subLang', 'zh-TW'],
-  ] as const)('sets <html lang> to the active %s locale', async (scope, cookie, locale) => {
+  ] as const)('pins the %s document to English', async (scope, cookie, savedLocale) => {
     vi.resetModules();
-    document.cookie = `${cookie}=${locale}; path=/`;
+    document.cookie = `${cookie}=${savedLocale}; path=/`;
     const { readyI18n } = await import('@/i18n/react');
 
     await readyI18n(scope);
 
-    expect(document.documentElement.lang).toBe(locale);
+    expect(document.documentElement.lang).toBe('en-US');
+    expect(document.cookie).toContain(`${cookie}=en-US`);
   });
 
-  it('falls back to en-US when the cookie names an unknown locale', async () => {
+  it('canonicalizes unknown locales to English', async () => {
     vi.resetModules();
     document.cookie = 'lang=xx-XX; path=/';
     const { readyI18n } = await import('@/i18n/react');
@@ -30,5 +29,6 @@ describe('readyI18n page language', () => {
     await readyI18n('panel');
 
     expect(document.documentElement.lang).toBe('en-US');
+    expect(document.cookie).toContain('lang=en-US');
   });
 });
