@@ -88,9 +88,10 @@ function PlansPageContent() {
     if (ids.length) nextPlanDraftId = Math.max(nextPlanDraftId, ...ids.map((id) => id + 1));
     return stored;
   });
-  const [linkedClients, setLinkedClients] = useState<(ClientDraft & { id: string })[]>(() =>
-    readStored<(ClientDraft & { id: string })[]>(PLAN_CLIENT_STORAGE_KEY, []),
-  );
+  const [linkedClients, setLinkedClients] = useState<(ClientDraft & { id: string })[]>(() => {
+    const stored = readStored<unknown>(PLAN_CLIENT_STORAGE_KEY, []);
+    return Array.isArray(stored) ? (stored as (ClientDraft & { id: string })[]) : [];
+  });
   const [planConfigLoaded, setPlanConfigLoaded] = useState(false);
   useEffect(() => {
     let active = true;
@@ -100,7 +101,7 @@ function PlansPageContent() {
         const config = response?.obj as { plans?: PlanModel[]; clients?: typeof linkedClients; configured?: boolean } | undefined;
         if (active && response?.success && config?.configured) {
           setPlans(Array.isArray(config.plans) ? config.plans : []);
-          setLinkedClients(config.clients && typeof config.clients === 'object' ? config.clients : {} as typeof linkedClients);
+          setLinkedClients(Array.isArray(config.clients) ? config.clients : []);
         }
       } catch { /* Keep the local copy available if the server is temporarily unreachable. */ }
       finally { if (active) setPlanConfigLoaded(true); }
