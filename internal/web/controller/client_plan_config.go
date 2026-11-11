@@ -30,7 +30,7 @@ func (a *ClientController) getPlanConfig(c *gin.Context) {
 		plans = json.RawMessage(`[]`)
 	}
 	if len(clients) == 0 {
-		clients = json.RawMessage(`{}`)
+		clients = json.RawMessage(`[]`)
 	}
 	jsonObj(c, gin.H{"plans": plans, "clients": clients, "configured": err == nil}, nil)
 }
