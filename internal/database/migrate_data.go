@@ -51,6 +51,7 @@ func migrationModels() []any {
 		&model.ClientHwid{},
 		&model.ClientExternalLink{},
 		&model.ClientGroup{},
+		&model.PanelPlanConfig{},
 		&model.InboundFallback{},
 		&model.Host{},
 		&model.HostTombstone{},
