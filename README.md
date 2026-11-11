@@ -73,21 +73,13 @@ Built as an enhanced fork of the original X-UI project, 3X-UI adds broader proto
 
 ## Quick Start
 
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
-```
-
-To install a specific version, append its tag (e.g. `v3.7.0`):
+Install the HCM Panel build from the **Panel** branch:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v3.7.0
+bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh) dev-latest
 ```
 
-To install the rolling **dev** build (latest per-commit pre-release from `main`, not a stable release), pass `dev-latest`:
-
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) dev-latest
-```
+The **dev-latest** build tracks the latest successful build from HCM's **Panel** branch. A new build is published after changes are pushed to that branch.
 
 During installation a random username, password, and access path are generated. After installation, run `x-ui` to open the management menu, where you can start/stop the service, view or reset your login credentials, manage SSL certificates, and more.
 

@@ -4,14 +4,14 @@ export type InstallMethod = 'script' | 'docker';
 
 export interface InstallOptions {
   method: InstallMethod;
-  /** A release tag like `v3.4.1`, or empty/`latest` for the latest release. */
+  /** An HCM release tag, or empty/`latest` for the current HCM `dev-latest` build. */
   version: string;
   enableFail2ban: boolean;
   panelPort: string;
   webBasePath: string;
 }
 
-const REPO_RAW = 'https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh';
+const REPO_RAW = 'https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh';
 const IMAGE = 'ghcr.io/mhsanaei/3x-ui:latest';
 
 function isLatest(version: string): boolean {
@@ -20,9 +20,9 @@ function isLatest(version: string): boolean {
 }
 
 /**
- * The one-line script install command. The master install script reads the
- * version as its first argument: empty = latest stable release, a tag like
- * `v3.4.0` = that release, and `dev-latest` = the rolling per-commit dev build.
+ * The one-line HCM install command. The Panel branch installer reads the
+ * version as its first argument: empty selects its `dev-latest` release, and
+ * a tag selects a published HCM release.
  */
 export function buildScriptCommand(options: InstallOptions): string {
   if (isLatest(options.version)) {

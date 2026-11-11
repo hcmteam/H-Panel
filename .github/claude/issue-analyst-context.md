@@ -169,7 +169,7 @@ test that cannot fail is invisible to CI. `make verify` is the local gate.
 
 ## Support facts reporters get wrong
 
-- Linux install: `bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)`
+- Linux install: `bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh) dev-latest`
 - Install generates a RANDOM username, password and web base path — never
   admin/admin. The `x-ui` menu on the server shows or resets them.
 - The installer service environment file is DISTRO-DEPENDENT:

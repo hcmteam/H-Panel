@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install 3x-ui via the official script (stable, pinned, or dev-latest), unattended/cloud-init, or Docker — and choose SQLite or PostgreSQL.
+description: Install HCM Panel from its Panel branch build, use Docker, or deploy unattended — and choose SQLite or PostgreSQL.
 icon: Download
 ---
 
@@ -18,25 +18,24 @@ across `amd64`, `386`, `arm64`, `armv7`, `armv6`, `armv5`, and `s390x`.
 
 <Tab value="Script">
 
-The official script is the recommended path. During installation it generates a
+The HCM Panel script is the recommended VPS install path. During installation it generates a
 **random** username, password, and access (web base) path, sets up the service,
 and installs the `x-ui` management command.
 
-```bash title="latest stable"
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+```bash title="latest HCM build"
+bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh)
 ```
 
-Install a **specific version** by appending its tag:
+Install a **published HCM version** by appending its release tag (available after the matching release workflow finishes):
 
-```bash title="pinned version"
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v3.4.0
+```bash title="pinned HCM release"
+bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh) vX.Y.Z
 ```
 
-Install the rolling **dev** build (the latest per-commit pre-release from `main`
-— not a stable release) by passing `dev-latest`:
+Install the rolling **HCM Panel** build from the `Panel` branch by passing `dev-latest`:
 
-```bash title="rolling dev build"
-bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) dev-latest
+```bash title="rolling HCM build"
+bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh) dev-latest
 ```
 
 When it finishes, note the printed login details and run `x-ui` to open the
@@ -87,7 +86,7 @@ holds TLS certificates, so your data survives upgrades.
 <Tab value="Manual">
 
 For advanced users, download a release archive for your architecture from the
-[releases page](https://github.com/MHSanaei/3x-ui/releases), extract it, and run
+[HCM releases page](https://github.com/hcmteam/H-Panel/releases), extract it, and run
 the binary as a systemd service. The install script automates exactly these
 steps, so it's preferred unless you have a specific reason to install by hand.
 
@@ -120,10 +119,10 @@ prompts, generating random credentials and writing them to
 `/etc/x-ui/install-result.env`:
 
 ```bash
-XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/hcmteam/H-Panel/Panel/install.sh)
 ```
 
-The repo's [`deploy/`](https://github.com/MHSanaei/3x-ui/tree/main/deploy)
+The repo's [`deploy/`](https://github.com/hcmteam/H-Panel/tree/Panel/deploy)
 directory has ready-made **cloud-init** user-data for unattended installs on any
 cloud (Hetzner, AWS, DigitalOcean, Vultr, GCP, Azure, Oracle).
 
