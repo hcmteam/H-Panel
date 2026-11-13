@@ -1007,7 +1007,12 @@ export default function ClientFormModal({
                             tooltip={t('pages.clients.totalGBDesc')}
                             transform={{ output: (v) => Number(v) || 0 }}
                           >
-                            <InputNumber min={0} step={1} disabled={!!planPreset} style={{ width: '100%' }} />
+                            <InputNumber
+                              min={0}
+                              step={1}
+                              disabled={!!planPreset}
+                              style={{ width: '100%' }}
+                            />
                           </FormField>
                         </Col>
                         <Col xs={24} md={12}>
@@ -1819,3 +1824,4 @@ export default function ClientFormModal({
     </>
   );
 }
+
