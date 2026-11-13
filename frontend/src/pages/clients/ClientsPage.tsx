@@ -2004,7 +2004,8 @@ export default function ClientsPage() {
                               const bucket = clientBucket(row);
                               const online =
                                 !!row.enable && bucket !== 'depleted' && isOnline(row.email);
-                              const expired = (row.expiryTime ?? 0) > 0 && (row.expiryTime ?? 0) <= Date.now();
+                              const expired =
+                                (row.expiryTime ?? 0) > 0 && (row.expiryTime ?? 0) <= Date.now();
                               const statusClass = online
                                 ? 'is-online'
                                 : expired
