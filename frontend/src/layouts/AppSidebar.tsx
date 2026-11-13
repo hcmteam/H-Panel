@@ -543,5 +543,3 @@ export default function AppSidebar() {
     </div>
   );
 }
-
-
