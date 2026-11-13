@@ -2661,3 +2661,101 @@ body:has(.pn-responsive-modal)
     font-size: 8px;
   }
 }
+
+
+/* Keep plan cards compact and put their edit action in the upper corner. */
+.pn-page .pn-plan-card {
+  justify-content: flex-start !important;
+  padding-top: 48px !important;
+}
+.pn-page .pn-plan-card > .r {
+  position: static !important;
+}
+.pn-page .pn-plan-card > .r > b {
+  position: absolute;
+  top: 14px;
+  right: 84px;
+  left: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pn-page .pn-plan-card > .r .ant-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+@media (max-width: 699px) {
+  .pn-plan-detail-page > .hd {
+    padding: 12px 4px 14px !important;
+  }
+  .pn-plan-detail-page > .hd .t h1 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+  .pn-plan-detail-page > .hd .t p {
+    font-size: 14px !important;
+  }
+  .pn-plan-detail-page > .wrap {
+    width: calc(100% + 16px);
+    margin-inline: -8px;
+    padding-inline: 8px !important;
+  }
+  .pn-plan-detail-page .pn-plan-stats {
+    gap: 8px !important;
+    margin: 10px 0 16px !important;
+  }
+  .pn-plan-detail-page .pn-plan-stat {
+    min-height: 96px !important;
+    padding: 12px !important;
+  }
+  .pn-plan-detail-page .pn-plan-stat .sm {
+    font-size: 12px !important;
+  }
+  .pn-plan-detail-page .pn-plan-stat .big {
+    font-size: 22px !important;
+  }
+  .pn-plan-detail-page .ant-tabs-nav {
+    min-height: 50px;
+    margin-bottom: 14px !important;
+  }
+  .pn-plan-detail-page .ant-tabs-tab {
+    padding: 12px 8px !important;
+    font-size: 16px !important;
+  }
+  .pn-plan-detail-page .pn-plan-clients-panel {
+    padding: 16px !important;
+  }
+  .pn-plan-detail-page .pn-plan-client-toolbar {
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+  }
+  .pn-plan-detail-page .pn-plan-client-toolbar .ant-checkbox-wrapper,
+  .pn-plan-detail-page .pn-plan-client-toolbar .ant-btn {
+    min-height: 40px;
+    font-size: 13px;
+  }
+  .pn-plan-detail-page .pn-plan-client-grid {
+    gap: 12px;
+  }
+  .pn-plan-detail-page .pn-plan-client-row {
+    min-height: 172px;
+    gap: 12px;
+    padding: 14px;
+  }
+  .pn-plan-detail-page .pn-plan-client-name.ant-btn {
+    min-height: 38px;
+    font-size: 14px;
+  }
+  .pn-plan-detail-page .pn-plan-client-inbounds .ant-tag {
+    min-height: 26px;
+    padding: 3px 9px;
+    font-size: 12px;
+  }
+  .pn-plan-detail-page .pn-plan-client-actions .ant-btn {
+    min-height: 38px;
+    font-size: 13px;
+  }
+}
