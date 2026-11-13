@@ -2759,3 +2759,45 @@ body:has(.pn-responsive-modal)
     font-size: 13px;
   }
 }
+
+/* Give phone users more room to scan plan cards and work with their clients and keys. */
+@media (max-width: 699px) {
+  .pn-page .pn-plan-grid > .pn-plan-card {
+    min-height: 184px !important;
+    padding-inline: 16px !important;
+  }
+  .pn-page .pn-plan-card > .big {
+    font-size: 27px !important;
+  }
+  .pn-page .pn-plan-card > .rg .tag {
+    min-height: 24px;
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+  .pn-plan-detail-page .pn-plan-client-row {
+    min-height: 190px;
+    gap: 14px;
+    padding: 17px;
+  }
+  .pn-plan-detail-page .pn-plan-client-name.ant-btn {
+    min-height: 42px;
+    font-size: 15px;
+  }
+  .pn-plan-detail-page .pn-plan-client-inbounds .ant-tag {
+    min-height: 28px;
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+  .pn-plan-detail-page .pn-plan-client-actions .ant-btn {
+    min-height: 42px;
+    font-size: 14px;
+  }
+  .pn-plan-detail-page .pn-plan-key-card {
+    min-height: 112px;
+    gap: 10px;
+    padding: 16px;
+  }
+  .pn-plan-detail-page .pn-plan-key-card > b {
+    font-size: 15px;
+  }
+}
