@@ -2459,16 +2459,30 @@ body:has(.pn-responsive-modal)
   padding: clamp(12px, 2vw, 20px);
 }
 .pn-plan-client-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
+  width: 100%;
   gap: 12px;
   margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--ln, rgba(255, 255, 255, 0.1));
 }
-.pn-plan-client-toolbar > .ant-space {
+.pn-plan-client-toolbar > .ant-space:first-child {
+  justify-self: start;
   min-width: 0;
+}
+.pn-plan-client-toolbar > .ant-space:last-child {
+  justify-self: end;
+  min-width: 0;
+}
+.pn-plan-client-toolbar .ant-checkbox-wrapper {
+  color: var(--tx, #f2f4ff);
+}
+.pn-plan-client-actions .ant-btn-icon-only {
+  width: 32px;
+  min-width: 32px;
+  padding-inline: 0;
 }
 .pn-plan-client-row {
   justify-content: flex-start;
@@ -2509,7 +2523,7 @@ body:has(.pn-responsive-modal)
     margin-bottom: 3px;
   }
   .pn-plan-client-toolbar {
-    align-items: flex-start;
+    align-items: start;
   }
   .pn-plan-client-toolbar > .ant-space:last-child {
     justify-content: flex-end;
@@ -2517,11 +2531,16 @@ body:has(.pn-responsive-modal)
 }
 @media (max-width: 420px) {
   .pn-plan-client-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 6px;
   }
   .pn-plan-client-toolbar > .ant-space:last-child {
     justify-content: flex-end;
+    gap: 4px !important;
+  }
+  .pn-plan-client-toolbar > .ant-space:last-child .ant-btn {
+    padding-inline: 7px;
   }
   .pn-plan-client-grid {
     grid-template-columns: minmax(0, 1fr);
