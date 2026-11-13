@@ -184,21 +184,24 @@ export function PlanCard({
     <article
       className="card tk pn-plan-card"
       style={{ '--c': color, '--p': '8%' } as CSSProperties}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (
+          onClick &&
+          event.target === event.currentTarget &&
+          (event.key === 'Enter' || event.key === ' ')
+        ) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open plan ${plan.name}` : undefined}
     >
       <div className="fill" />
       <div className="r">
-        {onClick ? (
-          <button
-            type="button"
-            className="pn-plan-card-name"
-            onClick={onClick}
-            aria-label={`Open plan ${plan.name}`}
-          >
-            {plan.name}
-          </button>
-        ) : (
-          <b>{plan.name}</b>
-        )}
+        <b>{plan.name}</b>
         {onEdit && (
           <Button
             size="small"
