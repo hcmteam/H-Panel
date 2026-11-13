@@ -71,7 +71,10 @@ const applyPlanToClient = async (
   const raw = await HttpUtil.get(clientManagementPath('get', email));
   const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
   if (!hydrated?.success || !hydrated.obj?.client) {
-    throw new Error(hydrated?.msg || 'Client ' + email + ' was not found.');
+    throw new Error(
+      hydrated?.msg ||
+        'Client ' + email + ' was not found. Create it on the Clients page first, then apply a plan.',
+    );
   }
 
   const client = hydrated.obj.client;
@@ -196,6 +199,7 @@ function PlansPageContent() {
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
+  const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [form] = Form.useForm<PlanDraft>();
   const [clientForm] = Form.useForm<ClientDraft>();
@@ -282,6 +286,8 @@ function PlansPageContent() {
     setClientOpen(true);
   };
   const submitClient = async () => {
+    if (clientSubmitting) return;
+    setClientSubmitting(true);
     try {
       const values = await clientForm.validateFields();
       const plan = plans.find((item) => String(item.id) === String(values.planId));
@@ -324,12 +330,19 @@ function PlansPageContent() {
           ? error.message
           : label('plans.applyFailed', 'Could not apply plan.'),
       );
+    } finally {
+      setClientSubmitting(false);
     }
   };
-  const sheetFooter = (onCancel: () => void, onSave: () => void, saveText: string) => (
+  const sheetFooter = (
+    onCancel: () => void,
+    onSave: () => void,
+    saveText: string,
+    loading = false,
+  ) => (
     <div className="act pn-sheet-footer">
       <Button onClick={onCancel}>{label('common.cancel', 'Cancel')}</Button>
-      <Button type="primary" onClick={onSave}>
+      <Button type="primary" loading={loading} onClick={onSave}>
         {saveText}
       </Button>
     </div>
@@ -337,7 +350,7 @@ function PlansPageContent() {
 
   if (selectedPlan)
     return (
-      <div className="pn-page">
+      <div className="pn-page pn-plan-detail-page">
         {messageContextHolder}
         <header className="hd">
           <div className="t">
@@ -555,7 +568,8 @@ function PlansPageContent() {
           footer={sheetFooter(
             () => setClientOpen(false),
             () => void submitClient(),
-            label('plans.addClient', 'Add client'),
+            label('plans.applyExistingClient', 'Apply plan'),
+            clientSubmitting,
           )}
         >
           <Form form={clientForm} layout="vertical">
@@ -563,8 +577,12 @@ function PlansPageContent() {
               name="email"
               label={label('client.email', 'Email')}
               rules={[{ required: true }]}
+              extra={label(
+                'plans.existingClientHint',
+                'Enter an existing client email. To create a new client, use the Clients page first.',
+              )}
             >
-              <Input />
+              <Input placeholder="client@example.com" />
             </Form.Item>
             <Form.Item name="planId" label={label('plans.plan', 'Plan')}>
               <Select options={plans.map((plan) => ({ value: plan.id, label: plan.name }))} />
