@@ -11,7 +11,8 @@
 #
 # Requires Docker and network access (install.sh downloads the released binary).
 # Usage: bash deploy/test/smoke-noninteractive.sh [version]
-#   With no argument install.sh resolves releases/latest. Pass an explicit tag
+#   With no argument install.sh uses the latest stable release if its Linux
+#   archive exists, otherwise it falls back to the rolling dev release. Pass a tag
 #   (e.g. v3.4.2) to verify that exact release — the tag-triggered CI run does
 #   this so it cannot silently validate the previous release (#5756).
 set -euo pipefail
