@@ -1477,10 +1477,13 @@ export default function ClientsPage() {
                                 >
                                   <b title={plan.name}>{plan.name}</b>
                                   <span className="plan-card-bottom">
-                                    <span>
-                                      IP {plan.limitIp || 0} · HWID {plan.hwidLimit || 0}
+                                    <span className="plan-card-limits">
+                                      IP {plan.limitIp || '∞'} · HWID {plan.hwidLimit || '∞'}
                                     </span>
-                                    <strong>{planEmails.get(key)?.size ?? 0}</strong>
+                                    <span className="plan-card-client-count">
+                                      <strong>{planEmails.get(key)?.size ?? 0}</strong>
+                                      <small>clients</small>
+                                    </span>
                                   </span>
                                 </button>
                               );
