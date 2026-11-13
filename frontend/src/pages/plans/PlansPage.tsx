@@ -73,7 +73,7 @@ const applyPlanToClient = async (
   if (!hydrated?.success || !hydrated.obj?.client) {
     throw new Error(
       hydrated?.msg ||
-        'Client ' + email + ' was not found. Create it on the Clients page first, then apply a plan.',
+        'Client ' + email + ' not found. Create it on the Clients page first.',
     );
   }
 
@@ -568,7 +568,7 @@ function PlansPageContent() {
           footer={sheetFooter(
             () => setClientOpen(false),
             () => void submitClient(),
-            label('plans.applyExistingClient', 'Apply plan'),
+            label('plans.applyPlanAction', 'Apply plan'),
             clientSubmitting,
           )}
         >
