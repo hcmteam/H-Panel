@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, QRCode, Tag, Tooltip, message } from 'antd';
+import { Button, QRCode, Tag, Tooltip, Typography, message } from 'antd';
 import { CopyOutlined, DownloadOutlined, PictureOutlined } from '@ant-design/icons';
 
 import { ClipboardManager, FileManager } from '@/utils';
@@ -13,6 +13,7 @@ interface QrPanelProps {
   downloadName?: string;
   size?: number;
   showQr?: boolean;
+  showValue?: boolean;
 }
 
 async function svgToPngBlob(svgEl: SVGSVGElement | null, size: number): Promise<Blob | null> {
@@ -61,6 +62,7 @@ export default function QrPanel({
   downloadName = '',
   size = 360,
   showQr = true,
+  showValue = false,
 }: QrPanelProps) {
   const { t } = useTranslation();
   const [messageApi, messageContextHolder] = message.useMessage();
@@ -130,6 +132,14 @@ export default function QrPanel({
           </Tooltip>
         )}
       </div>
+      {showValue && (
+        <Typography.Paragraph
+          copyable={{ text: value }}
+          style={{ margin: '8px 0', overflowWrap: 'anywhere', userSelect: 'text' }}
+        >
+          {value}
+        </Typography.Paragraph>
+      )}
       {showQr && (
         <div
           ref={qrRef}
