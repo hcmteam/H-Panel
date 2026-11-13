@@ -43,7 +43,6 @@ import {
   LinkOutlined,
   MoreOutlined,
   PlusOutlined,
-  QrcodeOutlined,
   RestOutlined,
   RetweetOutlined,
   SearchOutlined,
