@@ -181,26 +181,19 @@ export function PlanCard({
 }) {
   const color = plan.clientsCount ? 'var(--gr)' : 'var(--li)';
   return (
-    // oxlint-disable-next-line jsx-a11y/no-static-element-interactions
     <article
       className="card tk pn-plan-card"
       style={{ '--c': color, '--p': '8%' } as CSSProperties}
-      onClick={onClick}
-      onKeyDown={(event) => {
-        if (
-          onClick &&
-          event.target === event.currentTarget &&
-          (event.key === 'Enter' || event.key === ' ')
-        ) {
-          event.preventDefault();
-          onClick();
-        }
-      }}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      aria-label={onClick ? `Open plan ${plan.name}` : undefined}
     >
       <div className="fill" />
+      {onClick && (
+        <button
+          type="button"
+          className="pn-plan-card-hit-area"
+          aria-label={`Open plan ${plan.name}`}
+          onClick={onClick}
+        />
+      )}
       <div className="r">
         <b>{plan.name}</b>
         {onEdit && (
