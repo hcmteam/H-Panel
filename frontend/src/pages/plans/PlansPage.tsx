@@ -35,7 +35,7 @@ import {
   type ExternalLinkInput,
 } from '@/hooks/useClients';
 
-type PlanDraft = Omit<PlanModel, 'id' | 'clientsCount'> & { applyToExistingClients?: boolean };
+type PlanDraft = Omit<PlanModel, 'id' | 'clientsCount'>;
 type ClientDraft = {
   email: string;
   planId: number | string;
@@ -73,7 +73,6 @@ const EMPTY_PLAN: PlanDraft = {
   inboundIds: [],
   trafficReset: 'never',
   startAfterFirstUse: false,
-  applyToExistingClients: false,
 };
 
 let nextPlanDraftId = 1;
@@ -88,12 +87,9 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
-const applyPlanToClient = async (
-  plan: PlanModel,
+const getExistingClientAssignment = async (
   email: string,
-  inboundIds: number[],
-  clientDetails: Pick<ClientDraft, 'telegramId' | 'group'> = {},
-): Promise<void> => {
+): Promise<Pick<ClientDraft, 'telegramId' | 'group' | 'inbounds'>> => {
   const raw = await HttpUtil.get(clientManagementPath('get', email));
   const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
   if (!hydrated?.success || !hydrated.obj?.client) {
@@ -102,64 +98,13 @@ const applyPlanToClient = async (
     );
   }
 
+  // Store only plan-link metadata, using the client's current settings as read-only context.
   const client = hydrated.obj.client;
-  const clientFields = { ...client } as Record<string, unknown>;
-  const allowedIpsValue =
-    clientFields.allowedIps ?? clientFields.allowedIPs ?? clientFields.AllowedIPs;
-  const normalizedAllowedIps =
-    Array.isArray(allowedIpsValue) && allowedIpsValue.every((value) => typeof value === 'string')
-      ? allowedIpsValue
-      : typeof allowedIpsValue === 'string'
-        ? allowedIpsValue
-            .split(/[\\n,]/)
-            .map((value) => value.trim())
-            .filter(Boolean)
-        : [];
-  delete clientFields.allowedIps;
-  delete clientFields.allowedIPs;
-  delete clientFields.AllowedIPs;
-  const updatedClient = {
-    ...clientFields,
-    ...(allowedIpsValue == null ? {} : { allowedIps: normalizedAllowedIps }),
-    // Hydrated ClientRecord.id is the database number; update expects the proxy UUID string.
-    id: client.uuid,
-    totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
-    expiryTime:
-      plan.durationDays > 0
-        ? plan.startAfterFirstUse
-          ? -plan.durationDays * 24 * 60 * 60 * 1000
-          : Date.now() + plan.durationDays * 24 * 60 * 60 * 1000
-        : 0,
-    limitIp: Math.max(0, Number(plan.limitIp) || 0),
-    limitHwid: Math.max(0, Number(plan.hwidLimit) || 0),
-    trafficReset: plan.trafficReset || 'never',
-    tgId: clientDetails.telegramId?.trim()
-      ? Number(clientDetails.telegramId) || client.tgId
-      : client.tgId,
-    group: clientDetails.group?.trim() || client.group,
+  return {
+    telegramId: String(client.tgId ?? ''),
+    group: String(client.group ?? ''),
+    inbounds: Array.isArray(hydrated.obj.inboundIds) ? hydrated.obj.inboundIds : [],
   };
-  const result = await HttpUtil.post(clientManagementPath('update', email), updatedClient, {
-    headers: { 'Content-Type': 'application/json' },
-  });
-  if (!result?.success) {
-    throw new Error(result?.msg || 'Could not apply the plan to ' + email + '.');
-  }
-
-  const currentInboundIds = Array.isArray(hydrated.obj.inboundIds) ? hydrated.obj.inboundIds : [];
-  const configuredInboundIds = plan.inboundIds?.length ? plan.inboundIds : inboundIds;
-  const inboundsToAttach = configuredInboundIds.filter((id) => !currentInboundIds.includes(id));
-  if (inboundsToAttach.length) {
-    const attached = await HttpUtil.post(
-      `/panel/api/clients/${encodeURIComponent(email)}/attach`,
-      { inboundIds: inboundsToAttach },
-      { headers: { 'Content-Type': 'application/json' } },
-    );
-    if (!attached?.success) {
-      throw new Error(
-        attached?.msg || 'Plan limits were saved, but the inbound could not be attached.',
-      );
-    }
-  }
 };
 
 function PlansPageContent() {
@@ -506,14 +451,12 @@ function PlansPageContent() {
     setEditor('create');
   };
   const editPlan = (plan: PlanModel) => {
-    form.setFieldsValue({ ...EMPTY_PLAN, ...plan, applyToExistingClients: false });
+    form.setFieldsValue({ ...EMPTY_PLAN, ...plan });
     setEditor('edit');
   };
   const savePlan = async () => {
     const values = await form.validateFields();
-    const applyToExisting = Boolean(values.applyToExistingClients);
     const planValues = { ...values };
-    delete planValues.applyToExistingClients;
 
     if (editor === 'edit' && selectedPlan) {
       const updatedPlan: PlanModel = {
@@ -527,35 +470,7 @@ function PlansPageContent() {
       );
       setSelectedPlan(updatedPlan);
 
-      if (applyToExisting) {
-        const assigned = linkedClients.filter(
-          (client) => String(client.planId) === String(selectedPlan.id),
-        );
-        let applied = 0;
-        const failed: string[] = [];
-        for (const client of assigned) {
-          try {
-            await applyPlanToClient(updatedPlan, client.email, []);
-            applied += 1;
-          } catch {
-            failed.push(client.email);
-          }
-        }
-        if (failed.length) {
-          messageApi.warning(
-            label(
-              'plans.applyPartial',
-              'Plan saved. Applied to ' + applied + '; failed for ' + failed.join(', ') + '.',
-            ),
-          );
-        } else {
-          messageApi.success(
-            label('plans.applied', 'Plan saved and applied to ' + applied + ' client(s).'),
-          );
-        }
-      } else {
-        messageApi.success(label('plans.localSave', 'Plan saved.'));
-      }
+      messageApi.success(label('plans.localSave', 'Plan saved.'));
     } else {
       const plan: PlanModel = { ...planValues, id: nextPlanDraftId++, clientsCount: 0 };
       setPlans((current) => [...current, plan]);
@@ -599,8 +514,14 @@ function PlansPageContent() {
         );
         return;
       }
-      await applyPlanToClient(plan, values.email.trim(), values.inbounds ?? [], values);
-      const client = { ...values, email: values.email.trim(), id: RandomUtil.randomUUID() };
+      const email = values.email.trim();
+      const existingSettings = await getExistingClientAssignment(email);
+      const client = {
+        ...existingSettings,
+        email,
+        planId: values.planId,
+        id: RandomUtil.randomUUID(),
+      };
       setLinkedClients((current) => [...current, client]);
       setPlans((current) =>
         current.map((item) =>
@@ -615,7 +536,7 @@ function PlansPageContent() {
           : current,
       );
       messageApi.success(
-        label('plans.applyExistingClient', 'Plan and selected inbounds applied to client.'),
+        label('plans.applyExistingClient', 'Client assigned to plan. Existing settings were preserved.'),
       );
       setClientOpen(false);
       clientForm.resetFields();
@@ -1145,14 +1066,7 @@ function PlansPageContent() {
               <Switch aria-label={label('plans.startAfterFirstUse', 'Start after first use')} />{' '}
               <span>{label('plans.startAfterFirstUse', 'Start after first use')}</span>
             </Form.Item>
-            {editor === 'edit' && (
-              <Form.Item name="applyToExistingClients" valuePropName="checked">
-                <Switch
-                  aria-label={label('plans.applyExisting', 'Apply changes to existing clients')}
-                />{' '}
-                <span>{label('plans.applyExisting', 'Apply changes to existing clients')}</span>
-              </Form.Item>
-            )}
+}
           </Form>
         </ResponsiveSheet>
         <ResponsiveSheet
@@ -1198,57 +1112,10 @@ function PlansPageContent() {
             <Form.Item name="planId" label={label('plans.plan', 'Plan')}>
               <Select options={plans.map((plan) => ({ value: plan.id, label: plan.name }))} />
             </Form.Item>
-            <Form.Item name="telegramId" label={label('client.telegramId', 'Telegram user ID')}>
-              <Input />
-            </Form.Item>
-            <Form.Item name="group" label={label('menu.groups', 'Group')}>
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="inbounds"
-              label={label('menu.inbounds', 'Inbounds')}
-              extra={label(
-                'plans.inboundAttachHint',
-                'Selected inbounds will be attached to this existing client.',
-              )}
-              rules={[
-                {
-                  required: true,
-                  type: 'array',
-                  min: 1,
-                  message: label('plans.selectInbound', 'Choose at least one inbound.'),
-                },
-              ]}
-            >
-              <Select
-                mode="multiple"
-                tagRender={selectTagRender}
-                showSearch
-                optionFilterProp="label"
-                loading={inboundsLoading}
-                disabled={inboundsLoading || inbounds.length === 0}
-                aria-label={label('menu.inbounds', 'Inbounds')}
-                placeholder={
-                  inboundsLoading
-                    ? label('common.loading', 'Loading inbounds…')
-                    : inbounds.length
-                      ? label('plans.chooseInbounds', 'Choose one or more inbounds')
-                      : label('plans.noActiveInbounds', 'No inbounds are available')
-                }
-                options={inbounds
-                  .filter((inbound) => inbound.enable !== false)
-                  .map((inbound) => ({
-                    value: inbound.id,
-                    label:
-                      [inbound.remark, inbound.tag, inbound.protocol].filter(Boolean).join(' · ') ||
-                      `Inbound #${inbound.id}`,
-                  }))}
-              />
-            </Form.Item>
             <Typography.Text type="secondary">
               {label(
                 'plans.rulesFromPlan',
-                'Traffic, expiry, IP and HWID limits come from the selected plan.',
+                'This only links the client to the plan. Current expiry, limits, inbounds and keys stay unchanged.',
               )}
             </Typography.Text>
           </Form>
