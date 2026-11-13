@@ -2801,3 +2801,98 @@ body:has(.pn-responsive-modal)
     font-size: 15px;
   }
 }
+
+/* Keep plan totals compact inside the Plans heading card. */
+.pn-page > .pn-plans-header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title action" "stats stats";
+  align-items: start;
+  gap: 10px 14px !important;
+  padding: 16px !important;
+}
+.pn-page > .pn-plans-header > .t {
+  grid-area: title;
+  min-width: 0;
+}
+.pn-page > .pn-plans-header > .ant-btn {
+  grid-area: action;
+}
+.pn-page > .pn-plans-header > .pn-plan-stats {
+  grid-area: stats;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+.pn-page > .pn-plans-header > .pn-plan-stats .pn-stat {
+  height: 46px !important;
+  min-height: 46px !important;
+  padding: 5px 10px !important;
+  border-radius: 10px !important;
+}
+.pn-page > .pn-plans-header > .pn-plan-stats .pn-stat .sm {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+}
+.pn-page > .pn-plans-header > .pn-plan-stats .pn-stat .big {
+  font-size: 16px !important;
+  line-height: 1.05 !important;
+}
+
+/* Give every clickable control a clear raised hover and pressed response. */
+#app button:not(.pn-plan-card-hit-area):not(:disabled),
+#app .ant-btn:not(:disabled),
+#app [role="button"]:not([aria-disabled="true"]),
+#app .ant-tabs-tab {
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    box-shadow 140ms ease;
+}
+@media (hover: hover) {
+  #app button:not(.pn-plan-card-hit-area):not(:disabled):hover,
+  #app .ant-btn:not(:disabled):hover,
+  #app [role="button"]:not([aria-disabled="true"]):hover,
+  #app .ant-tabs-tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.12) saturate(1.05);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25) !important;
+  }
+}
+#app button:not(.pn-plan-card-hit-area):not(:disabled):active,
+#app .ant-btn:not(:disabled):active,
+#app [role="button"]:not([aria-disabled="true"]):active,
+#app .ant-tabs-tab:active {
+  transform: translateY(1px) scale(0.97) !important;
+  filter: brightness(1.18) saturate(1.1) !important;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.24) !important;
+}
+#app .pn-plan-card:has(.pn-plan-card-hit-area:active) {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(1.1) saturate(1.05);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #app button,
+  #app .ant-btn,
+  #app [role="button"],
+  #app .ant-tabs-tab {
+    transition: none !important;
+  }
+}
+@media (max-width: 699px) {
+  .pn-page > .pn-plans-header {
+    gap: 8px !important;
+    padding: 14px !important;
+  }
+  .pn-page > .pn-plans-header > .pn-plan-stats .pn-stat {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 4px 8px !important;
+  }
+  .pn-page > .pn-plans-header > .pn-plan-stats .pn-stat .big {
+    font-size: 15px !important;
+  }
+}
