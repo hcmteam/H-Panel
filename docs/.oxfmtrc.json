@@ -16,6 +16,8 @@
     // inside JSX components (Steps/Callout). Author MDX by hand.
     "content/**/*.mdx",
     // Generated API reference pages (fumadocs-openapi output).
-    "content/docs/**/reference/api"
+    "content/docs/**/reference/api",
+    // The architecture map uses intentionally aligned tables and code trees.
+    "architecture.md"
   ]
 }
