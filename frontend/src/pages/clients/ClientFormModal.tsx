@@ -1000,6 +1000,34 @@ export default function ClientFormModal({
                             </Space.Compact>
                           </Form.Item>
                         </Col>
+                        {planPreset ? (
+                          <Col span={24}>
+                            <div className="client-plan-preset-summary">
+                              <b>{t('menu.plans', 'Plan rules')}</b>
+                              <span>
+                                {t('pages.clients.totalGB')}: {planPreset.totalGB > 0 ? `${planPreset.totalGB} GB` : t('pages.clients.unlimited', 'Unlimited')}
+                              </span>
+                              <span>
+                                {t('pages.clients.expiryTime')}: {planPreset.durationDays > 0 ? `${planPreset.durationDays} days${planPreset.startAfterFirstUse ? ' · starts on first use' : ''}` : t('pages.clients.neverExpire', 'No expiry')}
+                              </span>
+                              <span>
+                                {t('pages.clients.limitIp')}: {planPreset.limitIp || '∞'} · {t('pages.clients.limitHwid')}: {planPreset.hwidLimit || '∞'}
+                              </span>
+                              <span>
+                                {t('pages.inbounds.periodicTrafficResetTitle')}: {planPreset.trafficReset || 'never'}
+                              </span>
+                              {planPreset.inboundIds?.length ? (
+                                <span>
+                                  {t('pages.clients.attachedInbounds')}: {inboundOptions
+                                    .filter((option) => planPreset.inboundIds?.includes(Number(option.value)))
+                                    .map((option) => String(option.label))
+                                    .join(', ')}
+                                </span>
+                              ) : null}
+                            </div>
+                          </Col>
+                        ) : (
+                          <>
                         <Col xs={24} md={12}>
                           <FormField
                             name="totalGB"
@@ -1169,6 +1197,8 @@ export default function ClientFormModal({
                         resetCount={client?.traffic?.resetCount || 0}
                         setExpiry={(expiry) => methods.setValue('expiryDate', expiry)}
                       />
+                          </>
+                        )}
 
                       <Row gutter={16}>
                         <Col xs={24} md={12}>
@@ -1246,36 +1276,39 @@ export default function ClientFormModal({
                         </Row>
                       )}
 
-                      <Form.Item
-                        label={t('pages.clients.attachedInbounds')}
-                        required={!isEdit}
-                        htmlFor={`${uid}-inbounds`}
-                      >
-                        <SelectAllClearButtons
-                          options={inboundOptions}
-                          value={inboundIds}
-                          onChange={handleInboundChange}
-                        />
-                        <Select
-                          id={`${uid}-inbounds`}
-                          mode="multiple"
-                          disabled={!!planPreset?.inboundIds?.length}
-                          tagRender={selectTagRender}
-                          value={inboundIds}
-                          onChange={handleInboundChange}
-                          options={inboundOptions}
-                          placeholder={t('pages.clients.selectInbound')}
-                          placement="topLeft"
-                          listHeight={220}
-                          showSearch={{
-                            filterOption: (input, option) =>
-                              ((option?.label as string) || '')
-                                .toLowerCase()
-                                .includes(input.toLowerCase()),
-                          }}
-                        />
-                      </Form.Item>
-
+                      {planPreset?.inboundIds?.length ? null : (
+                        <Form.Item
+                          label={t('pages.clients.attachedInbounds')}
+                          required={!isEdit}
+                          htmlFor={`${uid}-inbounds`}
+                        >
+                          <SelectAllClearButtons
+                            options={inboundOptions}
+                            value={inboundIds}
+                            onChange={handleInboundChange}
+                          />
+                          <Select
+                            id={`${uid}-inbounds`}
+                            mode="multiple"
+                            disabled={!!planPreset?.inboundIds?.length}
+                            tagRender={selectTagRender}
+                            value={inboundIds}
+                            onChange={handleInboundChange}
+                            options={inboundOptions}
+                            placeholder={t('pages.clients.selectInbound')}
+                            placement="topLeft"
+                            listHeight={220}
+                            showSearch={{
+                              filterOption: (input, option) =>
+                                ((option?.label as string) || '')
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase()),
+                            }}
+                          />
+                        </Form.Item>
+  
+  
+                      )}
                       <Form.Item>
                         <Switch
                           aria-label={t('enable')}
