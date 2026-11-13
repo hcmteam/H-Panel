@@ -912,6 +912,6 @@
 }
 @media (max-width: 767px) {
   .clients-page .client-cards {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
