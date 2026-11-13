@@ -13,8 +13,10 @@ import {
   Tabs,
   Typography,
   message,
+  Popconfirm,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { DeleteOutlined } from '@ant-design/icons';
 import { PlanCard, PnStatTile, ResponsiveSheet, type PlanModel } from '@/components/pn';
 import { clientManagementPath } from '@/api/client-management';
 import { ClientHydrateSchema } from '@/schemas/client';
@@ -204,6 +206,23 @@ function PlansPageContent() {
   const [clientForm] = Form.useForm<ClientDraft>();
   const [messageApi, messageContextHolder] = message.useMessage();
   const clients = useMemo(() => linkedClients.length, [linkedClients]);
+  const removeClientFromPlan = (client: ClientDraft & { id: string }) => {
+    if (!selectedPlan) return;
+    setLinkedClients((current) => current.filter((item) => item.id !== client.id));
+    setPlans((current) =>
+      current.map((item) =>
+        String(item.id) === String(selectedPlan.id)
+          ? { ...item, clientsCount: Math.max(0, (item.clientsCount ?? 0) - 1) }
+          : item,
+      ),
+    );
+    setSelectedPlan((current) =>
+      current
+        ? { ...current, clientsCount: Math.max(0, (current.clientsCount ?? 0) - 1) }
+        : current,
+    );
+    messageApi.success(label('plans.clientRemovedFromPlan', 'Client removed from this plan.'));
+  };
 
   const closeEditor = () => {
     setEditor(null);
@@ -413,11 +432,31 @@ function PlansPageContent() {
                             }}
                           >
                             <Typography.Text>{client.email}</Typography.Text>
-                            {client.telegramId ? (
-                              <Typography.Text type="secondary">
-                                {client.telegramId}
-                              </Typography.Text>
-                            ) : null}
+                            <Space size={8}>
+                              {client.telegramId ? (
+                                <Typography.Text type="secondary">
+                                  {client.telegramId}
+                                </Typography.Text>
+                              ) : null}
+                              <Popconfirm
+                                title={label('plans.removeClientTitle', 'Remove this client from the plan?')}
+                                description={label(
+                                  'plans.removeClientDescription',
+                                  'The client account will remain on the VPS.',
+                                )}
+                                okText={label('common.remove', 'Remove')}
+                                cancelText={label('common.cancel', 'Cancel')}
+                                onConfirm={() => removeClientFromPlan(client)}
+                              >
+                                <Button
+                                  danger
+                                  type="text"
+                                  size="small"
+                                  icon={<DeleteOutlined aria-hidden />}
+                                  aria-label={label('plans.removeClient', 'Remove client from plan')}
+                                />
+                              </Popconfirm>
+                            </Space>
                           </div>
                         ))
                     ) : (
