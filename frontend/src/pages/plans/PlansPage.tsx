@@ -21,6 +21,7 @@ import { ClientHydrateSchema } from '@/schemas/client';
 import { SlimInboundListSchema } from '@/schemas/inbound';
 import { HttpUtil, RandomUtil } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
+import { selectTagRender } from '@/components/form';
 
 type PlanDraft = Omit<PlanModel, 'id' | 'clientsCount'> & { applyToExistingClients?: boolean };
 type ClientDraft = {
@@ -125,10 +126,9 @@ function PlansPageContent() {
   });
   const [planConfigLoaded, setPlanConfigLoaded] = useState(false);
   const [inbounds, setInbounds] = useState<PlanInbound[]>([]);
-  const [inboundsLoading, setInboundsLoading] = useState(false);
+  const [inboundsLoading, setInboundsLoading] = useState(true);
   useEffect(() => {
     let active = true;
-    setInboundsLoading(true);
     void HttpUtil.get('/panel/api/inbounds/list/slim', undefined, { silent: true })
       .then((response) => {
         if (!response?.success) throw new Error(response?.msg || 'Could not load inbounds.');
@@ -593,6 +593,7 @@ function PlansPageContent() {
             >
               <Select
                 mode="multiple"
+                tagRender={selectTagRender}
                 showSearch
                 optionFilterProp="label"
                 loading={inboundsLoading}
