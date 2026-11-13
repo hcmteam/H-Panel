@@ -1873,4 +1873,3 @@ export default function ClientFormModal({
     </>
   );
 }
-
