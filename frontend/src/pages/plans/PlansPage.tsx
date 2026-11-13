@@ -1259,7 +1259,7 @@ function PlansPageContent() {
   return (
     <div className="pn-page">
       {messageContextHolder}
-      <header className="hd">
+      <header className="hd pn-plans-header">
         <div className="t">
           <h1>{label('menu.plans', 'Plans')}</h1>
           <p>{label('plans.subtitle', 'Reusable rules for client accounts')}</p>
@@ -1267,13 +1267,13 @@ function PlansPageContent() {
         <Button type="primary" onClick={createPlan}>
           {label('plans.newTitle', 'New plan')}
         </Button>
-      </header>
-      <div className="wrap">
         <div className="g2 pn-plan-stats">
           <PnStatTile label={label('plans.plans', 'Plans')} value={plans.length} />
           <PnStatTile label={label('plans.online', 'Online')} value={0} color="var(--cy)" />
           <PnStatTile label={label('plans.clients', 'Clients')} value={clients} color="var(--gr)" />
         </div>
+      </header>
+      <div className="wrap">
         {plans.length ? (
           <div className="g2 pn-plan-grid">
             {plans.map((plan) => (
