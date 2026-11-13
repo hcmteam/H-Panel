@@ -13,10 +13,13 @@ export const i18n = defineI18n({
 
 export type Locale = (typeof i18n.languages)[number];
 
+type LocaleOption = {
+  locale: Locale;
+  name: string;
+};
+
 // Display names for the language switcher (in their own script).
-export const locales: { locale: Locale; name: string }[] = [
-  { locale: 'en', name: 'English' },
-];
+export const locales: LocaleOption[] = [{ locale: 'en', name: 'English' }];
 
 // Right-to-left locales (Persian). Drives `<html dir>` and `rtl:` variants.
 const rtlLocales = new Set<string>();
