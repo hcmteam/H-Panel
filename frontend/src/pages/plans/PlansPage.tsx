@@ -418,8 +418,6 @@ function PlansPageContent() {
     messageApi.success(label('plans.clientRemovedFromPlan', 'Client removed from this plan.'));
   };
 
-
-
   const openPlanClientEdit = async (client: ClientDraft & { id: string }) => {
     try {
       const full = await hydrate(client.email);
