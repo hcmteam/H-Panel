@@ -47,11 +47,13 @@ describe('ClientQrModal Happ QR capacity against the real encoder', () => {
     vi.mocked(HttpUtil.post).mockReset();
   });
 
-  it('renders the QR for a link exactly at the level-L capacity', async () => {
-    renderHappVariant(happLinkOfBytes(LEVEL_L_CAPACITY_BYTES));
+  it('keeps a link at the QR capacity available as a key without showing a QR', async () => {
+    const link = happLinkOfBytes(LEVEL_L_CAPACITY_BYTES);
+    renderHappVariant(link);
 
     await screen.findByRole('button', { name: 'Regenerate' });
-    expect(document.body.querySelector('.qr-panel-canvas svg')).not.toBeNull();
+    expect(document.body.textContent).toContain(link);
+    expect(document.body.querySelector('.qr-panel-canvas')).toBeNull();
     expect(screen.queryByText(/too long to display as a QR code/)).toBeNull();
   });
 
