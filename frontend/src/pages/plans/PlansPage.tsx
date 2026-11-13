@@ -136,7 +136,6 @@ function PlansPageContent() {
   });
   const [planConfigLoaded, setPlanConfigLoaded] = useState(false);
   const [inbounds, setInbounds] = useState<PlanInbound[]>([]);
-  const [inboundsLoading, setInboundsLoading] = useState(true);
   useEffect(() => {
     let active = true;
     void HttpUtil.get('/panel/api/inbounds/list/slim', undefined, { silent: true })
@@ -159,9 +158,6 @@ function PlansPageContent() {
           messageApi.error(error instanceof Error ? error.message : 'Could not load inbounds.');
         }
       })
-      .finally(() => {
-        if (active) setInboundsLoading(false);
-      });
     return () => {
       active = false;
     };
@@ -536,7 +532,10 @@ function PlansPageContent() {
           : current,
       );
       messageApi.success(
-        label('plans.applyExistingClient', 'Client assigned to plan. Existing settings were preserved.'),
+        label(
+          'plans.applyExistingClient',
+          'Client assigned to plan. Existing settings were preserved.',
+        ),
       );
       setClientOpen(false);
       clientForm.resetFields();
