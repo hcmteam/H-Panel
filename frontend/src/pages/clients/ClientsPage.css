@@ -645,3 +645,67 @@
     font-size: 13px;
   }
 }
+
+
+.clients-plan-panel {
+  padding: 6px 8px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 14px;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.clients-page .plans-scroller {
+  gap: 6px;
+  padding: 0 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.clients-page .plans-scroller .plan-card {
+  flex-basis: 104px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.clients-page .client-status-chips {
+  gap: 6px;
+  margin-top: 4px;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.clients-page .client-status-chip {
+  gap: 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.clients-page .client-cards {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 7px;
+}
+
+.clients-page .client-card {
+  padding: 7px 9px;
+}
+
+.clients-page .client-card-footer {
+  margin-top: 7px;
+  padding-top: 7px;
+}
+
+.clients-page-head {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .clients-page .client-cards {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+
+  .clients-page .client-status-chip {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
