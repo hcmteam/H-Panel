@@ -1,5 +1,5 @@
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { clientManagementPath } from '@/api/client-management';
@@ -695,19 +695,6 @@ export default function ClientsPage() {
     },
     [expireDiff, trafficDiff],
   );
-
-  function bucketBadgeStatus(bucket: Bucket | null): 'success' | 'warning' | 'error' | 'default' {
-    switch (bucket) {
-      case 'depleted':
-        return 'error';
-      case 'expiring':
-        return 'warning';
-      case 'active':
-        return 'success';
-      default:
-        return 'default';
-    }
-  }
 
   // The list page renders rows the server already sorted, filtered, and
   // paginated. Local filtering is gone — keep the variable name so the rest
