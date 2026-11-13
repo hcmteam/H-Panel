@@ -187,11 +187,17 @@ export function PlanCard({
     >
       <div className="fill" />
       <div className="r">
-        <b>{plan.name}</b>
-        {onClick && (
-          <Button size="small" className="pn-plan-open" onClick={onClick}>
-            Open
-          </Button>
+        {onClick ? (
+          <button
+            type="button"
+            className="pn-plan-card-name"
+            onClick={onClick}
+            aria-label={`Open plan ${plan.name}`}
+          >
+            {plan.name}
+          </button>
+        ) : (
+          <b>{plan.name}</b>
         )}
         {onEdit && (
           <Button
