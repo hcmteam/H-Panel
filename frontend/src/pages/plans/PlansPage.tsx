@@ -657,7 +657,9 @@ function PlansPageContent() {
                       )
                       .map((client) => {
                         const result = planKeys[client.email];
-                        const clientInboundIds = Array.isArray(client.inbounds) ? client.inbounds : [];
+                        const clientInboundIds = Array.isArray(client.inbounds) && client.inbounds.length
+                          ? client.inbounds
+                          : selectedPlan.inboundIds ?? [];
                         return (
                           <section
                             className={
