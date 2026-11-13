@@ -72,8 +72,7 @@ const applyPlanToClient = async (
   const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
   if (!hydrated?.success || !hydrated.obj?.client) {
     throw new Error(
-      hydrated?.msg ||
-        'Client ' + email + ' not found. Create it on the Clients page first.',
+      hydrated?.msg || `Client ${email} not found. Create it on the Clients page first.`,
     );
   }
 
@@ -579,7 +578,7 @@ function PlansPageContent() {
               rules={[{ required: true }]}
               extra={label(
                 'plans.existingClientHint',
-                'Enter an existing client email. To create a new client, use the Clients page first.',
+                'Enter an existing client email. Create new clients from the Clients page.',
               )}
             >
               <Input placeholder="client@example.com" />
