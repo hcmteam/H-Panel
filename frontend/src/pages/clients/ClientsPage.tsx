@@ -2087,7 +2087,7 @@ export default function ClientsPage() {
                                     trafficDiff={trafficDiff}
                                   />
                                   <div className="client-card-footer">
-                                    <span>
+                                    <span className="client-expiry-status">
                                       {!row.expiryTime
                                         ? 'No expiry'
                                         : row.expiryTime < 0
