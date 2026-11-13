@@ -243,7 +243,7 @@ function PlansPageContent() {
         const failed: string[] = [];
         for (const client of assigned) {
           try {
-            await applyPlanToClient(updatedPlan, client.email);
+            await applyPlanToClient(updatedPlan, client.email, []);
             applied += 1;
           } catch {
             failed.push(client.email);
