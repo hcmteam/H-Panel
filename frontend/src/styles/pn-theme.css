@@ -2443,3 +2443,87 @@ body:has(.pn-responsive-modal)
   z-index: 3;
   pointer-events: auto;
 }
+
+/* Plan detail controls stay anchored at the panel edge and respond well on touch. */
+.pn-plan-detail-page > .hd {
+  align-items: flex-start;
+  gap: 12px;
+}
+.pn-plan-detail-page > .hd .t {
+  min-width: 0;
+}
+.pn-plan-detail-page > .hd .pn-plan-back-button {
+  flex: none;
+}
+.pn-plan-clients-panel {
+  padding: clamp(12px, 2vw, 20px);
+}
+.pn-plan-client-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ln, rgba(255, 255, 255, 0.1));
+}
+.pn-plan-client-toolbar > .ant-space {
+  min-width: 0;
+}
+.pn-plan-client-row {
+  justify-content: flex-start;
+  min-height: 150px;
+}
+.pn-plan-client-heading {
+  justify-content: flex-start;
+}
+.pn-plan-client-heading .pn-plan-client-name {
+  flex: 1;
+}
+.pn-plan-client-actions {
+  align-self: stretch;
+}
+.pn-plan-card-hit-area {
+  z-index: 1;
+}
+.pn-plan-card .r > .ant-btn {
+  position: relative;
+  z-index: 2;
+}
+.pn-page .pn-plan-grid > .pn-plan-card {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+.pn-page .pn-plan-grid > .pn-plan-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--li) 58%, var(--ln)) !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
+}
+@media (max-width: 640px) {
+  .pn-plan-detail-page > .hd {
+    flex-wrap: nowrap !important;
+  }
+  .pn-plan-detail-page > .hd .t h1 {
+    margin-bottom: 3px;
+  }
+  .pn-plan-client-toolbar {
+    align-items: flex-start;
+  }
+  .pn-plan-client-toolbar > .ant-space:last-child {
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 420px) {
+  .pn-plan-client-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pn-plan-client-toolbar > .ant-space:last-child {
+    justify-content: flex-end;
+  }
+  .pn-plan-client-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
