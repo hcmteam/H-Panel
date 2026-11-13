@@ -125,6 +125,15 @@ interface ClientFormModalProps {
   tunnelAllowedIPs?: Record<number, string>;
   tgBotEnable?: boolean;
   groups?: string[];
+  planPreset?: {
+    totalGB: number;
+    durationDays: number;
+    limitIp: number;
+    hwidLimit: number;
+    trafficReset?: string;
+    startAfterFirstUse?: boolean;
+    inboundIds?: number[];
+  };
   save: (
     payload: Record<string, unknown> | SaveCreatePayload,
     meta: SaveMetaEdit | SaveMetaCreate,
@@ -259,6 +268,7 @@ export default function ClientFormModal({
   tunnelAllowedIPs = {},
   tgBotEnable = false,
   groups = [],
+  planPreset,
   save,
   resetTraffic,
   onOpenChange,
@@ -420,6 +430,8 @@ export default function ClientFormModal({
       void loadHwids();
     } else {
       const wgKeypair = Wireguard.generateKeypair();
+      const durationDays = Math.max(0, Number(planPreset?.durationDays) || 0);
+      const startsAfterUse = !!planPreset?.startAfterFirstUse && durationDays > 0;
       methods.reset({
         ...EMPTY,
         email: RandomUtil.randomLowerAndNum(10),
@@ -429,11 +441,26 @@ export default function ClientFormModal({
         auth: RandomUtil.randomLowerAndNum(16),
         wgPrivateKey: wgKeypair.privateKey,
         wgPublicKey: wgKeypair.publicKey,
+        ...(planPreset
+          ? {
+              totalGB: Math.max(0, Number(planPreset.totalGB) || 0),
+              limitIp: Math.max(0, Number(planPreset.limitIp) || 0),
+              limitHwid: Math.max(0, Number(planPreset.hwidLimit) || 0),
+              trafficReset: planPreset.trafficReset || 'never',
+              inboundIds: [...(planPreset.inboundIds ?? [])],
+              delayedStart: startsAfterUse,
+              delayedDays: startsAfterUse ? durationDays : 0,
+              expiryDate:
+                durationDays > 0 && !startsAfterUse
+                  ? Date.now() + durationDays * 24 * 60 * 60 * 1000
+                  : 0,
+            }
+          : {}),
       });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isEdit]);
+  }, [open, isEdit, planPreset]);
 
   const flowCapableIds = useMemo(() => {
     const ids = new Set<number>();
@@ -980,7 +1007,7 @@ export default function ClientFormModal({
                             tooltip={t('pages.clients.totalGBDesc')}
                             transform={{ output: (v) => Number(v) || 0 }}
                           >
-                            <InputNumber min={0} step={1} style={{ width: '100%' }} />
+                            <InputNumber min={0} step={1} disabled={!!planPreset} style={{ width: '100%' }} />
                           </FormField>
                         </Col>
                         <Col xs={24} md={12}>
@@ -997,7 +1024,7 @@ export default function ClientFormModal({
                                     aria-describedby={`${uid}-limit-ip-hint`}
                                     value={limitIp}
                                     min={0}
-                                    disabled={limitIpDisabled}
+                                    disabled={limitIpDisabled || !!planPreset}
                                     style={{
                                       flex: 1,
                                       ...(limitIpDisabled ? { pointerEvents: 'none' } : null),
@@ -1036,6 +1063,7 @@ export default function ClientFormModal({
                                 aria-describedby={`${uid}-limit-hwid-hint`}
                                 value={limitHwid}
                                 min={0}
+                                disabled={!!planPreset}
                                 style={{ flex: 1 }}
                                 onChange={(v) => methods.setValue('limitHwid', Number(v) || 0)}
                               />
@@ -1226,6 +1254,7 @@ export default function ClientFormModal({
                         <Select
                           id={`${uid}-inbounds`}
                           mode="multiple"
+                          disabled={!!planPreset}
                           tagRender={selectTagRender}
                           value={inboundIds}
                           onChange={handleInboundChange}
