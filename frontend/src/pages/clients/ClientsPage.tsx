@@ -438,7 +438,6 @@ export default function ClientsPage() {
     }
   });
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const planScrollerRef = useRef<HTMLDivElement>(null);
   const planDragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -1421,9 +1420,9 @@ export default function ClientsPage() {
                       </div>
                       <div
                         className="plans-scroller"
-                        ref={planScrollerRef}
                         onPointerDown={(event) => {
                           if (event.button !== 0) return;
+                          event.currentTarget.classList.add('is-dragging');
                           planDragRef.current = {
                             pointerId: event.pointerId,
                             startX: event.clientX,
@@ -1446,6 +1445,7 @@ export default function ClientsPage() {
                           const drag = planDragRef.current;
                           if (drag?.pointerId === event.pointerId) {
                             suppressPlanClickRef.current = drag.moved;
+                            event.currentTarget.classList.remove('is-dragging');
                             planDragRef.current = null;
                             window.setTimeout(() => { suppressPlanClickRef.current = false; }, 0);
                           }
@@ -1453,7 +1453,10 @@ export default function ClientsPage() {
                             event.currentTarget.releasePointerCapture(event.pointerId);
                           }
                         }}
-                        onPointerCancel={() => { planDragRef.current = null; }}
+                        onPointerCancel={(event) => {
+                          event.currentTarget.classList.remove('is-dragging');
+                          planDragRef.current = null;
+                        }}
                         onClickCapture={(event) => {
                           if (suppressPlanClickRef.current) {
                             event.preventDefault();
