@@ -3,6 +3,7 @@ import { Layout } from 'antd';
 import AppSidebar from '@/layouts/AppSidebar';
 import {
   Button,
+  Checkbox,
   Empty,
   Form,
   Input,
@@ -174,6 +175,7 @@ function PlansPageContent() {
     detach,
     setExternalLinks,
     resetTraffic,
+    bulkAdjust,
   } = useClients();
   const [messageApi, messageContextHolder] = message.useMessage();
 
@@ -268,6 +270,7 @@ function PlansPageContent() {
   } | null>(null);
   const [editingPlanClientOpen, setEditingPlanClientOpen] = useState(false);
   const [planClientActionEmail, setPlanClientActionEmail] = useState<string | null>(null);
+  const [selectedPlanClientIds, setSelectedPlanClientIds] = useState<string[]>([]);
   const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [planKeys, setPlanKeys] = useState<Record<string, PlanKeyResult>>({});
@@ -403,6 +406,7 @@ function PlansPageContent() {
   const removeClientFromPlan = (client: ClientDraft & { id: string }) => {
     if (!selectedPlan) return;
     setLinkedClients((current) => current.filter((item) => item.id !== client.id));
+    setSelectedPlanClientIds((current) => current.filter((id) => id !== client.id));
     setPlans((current) =>
       current.map((item) =>
         String(item.id) === String(selectedPlan.id)
@@ -465,29 +469,10 @@ function PlansPageContent() {
       const full = await hydrate(client.email);
       const record = full?.client;
       if (!record) throw new Error('Could not load this client.');
-      const expiry = Number(record.expiryTime) || 0;
-      if (expiry === 0) throw new Error('This client has no expiry date to extend.');
-      const extra = 30 * 24 * 60 * 60 * 1000;
-      const nextExpiry = expiry < 0 ? expiry - extra : Math.max(Date.now(), expiry) + extra;
-      const fields = { ...record } as Record<string, unknown>;
-      const allowedIps = fields.allowedIps ?? fields.allowedIPs ?? fields.AllowedIPs;
-      delete fields.allowedIps;
-      delete fields.allowedIPs;
-      delete fields.AllowedIPs;
-      const normalizedAllowedIps = Array.isArray(allowedIps)
-        ? allowedIps.filter((value): value is string => typeof value === 'string')
-        : typeof allowedIps === 'string'
-          ? allowedIps
-              .split(/[\\n,]/)
-              .map((value) => value.trim())
-              .filter(Boolean)
-          : undefined;
-      const result = await update(client.email, {
-        ...fields,
-        id: record.uuid,
-        expiryTime: nextExpiry,
-        ...(normalizedAllowedIps ? { allowedIps: normalizedAllowedIps } : {}),
-      });
+      if (!Number(record.expiryTime)) {
+        throw new Error('This client has no expiry date to extend.');
+      }
+      const result = await bulkAdjust([client.email], 30, 0);
       if (!result?.success) throw new Error(result?.msg || 'Could not add 30 days.');
       messageApi.success('30 days added to ' + client.email + '.');
     } catch (error) {
@@ -658,6 +643,20 @@ function PlansPageContent() {
     </div>
   );
 
+  const assignedPlanClients = selectedPlan
+    ? linkedClients.filter((client) => String(client.planId) === String(selectedPlan.id))
+    : [];
+  const allPlanClientsSelected =
+    assignedPlanClients.length > 0 &&
+    assignedPlanClients.every((client) => selectedPlanClientIds.includes(client.id));
+  const removeSelectedPlanClients = () => {
+    const selected = new Set(selectedPlanClientIds);
+    assignedPlanClients
+      .filter((client) => selected.has(client.id))
+      .forEach((client) => removeClientFromPlan(client));
+    setSelectedPlanClientIds([]);
+  };
+
   if (selectedPlan)
     return (
       <div className="pn-page pn-plan-detail-page">
@@ -667,18 +666,15 @@ function PlansPageContent() {
             <h1>{selectedPlan.name}</h1>
             <p>{label('plans.detailSubtitle', 'Plan rules and assigned clients')}</p>
           </div>
-          <Space wrap>
-            <Button onClick={() => setSelectedPlan(null)}>{label('common.back', 'Back')}</Button>
-            <Button onClick={() => editPlan(selectedPlan)}>
-              {label('common.edit', 'Edit plan')}
-            </Button>
-            <Button onClick={openAddClient}>
-              {label('plans.addExistingClient', 'Add existing')}
-            </Button>
-            <Button type="primary" onClick={() => setNewClientOpen(true)}>
-              {label('plans.createClient', 'New client')}
-            </Button>
-          </Space>
+          <Button
+            className="pn-plan-back-button"
+            onClick={() => {
+              setSelectedPlan(null);
+              setSelectedPlanClientIds([]);
+            }}
+          >
+            {label('common.back', 'Back')}
+          </Button>
         </header>
         <div className="wrap">
           <div className="g2 pn-plan-stats">
@@ -709,13 +705,44 @@ function PlansPageContent() {
                 label: label('plans.clients', 'Clients'),
                 children: (
                   <div className="pn-empty-state pn-plan-clients-panel">
-                    {linkedClients.filter(
-                      (client) => String(client.planId) === String(selectedPlan.id),
-                    ).length ? (
+                    <div className="pn-plan-client-toolbar">
+                      <Space wrap size={[8, 8]}>
+                        <Checkbox
+                          checked={allPlanClientsSelected}
+                          disabled={!assignedPlanClients.length}
+                          onChange={(event) =>
+                            setSelectedPlanClientIds(
+                              event.target.checked ? assignedPlanClients.map((client) => client.id) : [],
+                            )
+                          }
+                        >
+                          {label('common.selectAll', 'Select all')}
+                        </Checkbox>
+                        {selectedPlanClientIds.length > 0 && (
+                          <Popconfirm
+                            title={label('plans.removeSelectedTitle', 'Remove selected clients from this plan?')}
+                            okText={label('common.remove', 'Remove')}
+                            cancelText={label('common.cancel', 'Cancel')}
+                            onConfirm={removeSelectedPlanClients}
+                          >
+                            <Button danger size="small">
+                              {label('plans.removeSelected', 'Remove selected')} ({selectedPlanClientIds.length})
+                            </Button>
+                          </Popconfirm>
+                        )}
+                      </Space>
+                      <Space wrap size={[8, 8]}>
+                        <Button onClick={openAddClient}>
+                          {label('plans.addExistingClient', 'Add existing')}
+                        </Button>
+                        <Button type="primary" onClick={() => setNewClientOpen(true)}>
+                          {label('plans.createClient', 'New client')}
+                        </Button>
+                      </Space>
+                    </div>
+                    {assignedPlanClients.length ? (
                       <div className="pn-plan-client-grid">
-                        {linkedClients
-                          .filter((client) => String(client.planId) === String(selectedPlan.id))
-                          .map((client) => {
+                        {assignedPlanClients.map((client) => {
                             const clientInboundIds = client.inbounds?.length
                               ? client.inbounds
                               : (selectedPlan.inboundIds ?? []);
@@ -723,6 +750,17 @@ function PlansPageContent() {
                             return (
                               <article className="pn-plan-client-row" key={client.id}>
                                 <div className="pn-plan-client-heading">
+                                  <Checkbox
+                                    checked={selectedPlanClientIds.includes(client.id)}
+                                    onChange={(event) =>
+                                      setSelectedPlanClientIds((current) =>
+                                        event.target.checked
+                                          ? [...new Set([...current, client.id])]
+                                          : current.filter((id) => id !== client.id),
+                                      )
+                                    }
+                                    aria-label={`Select ${client.email}`}
+                                  />
                                   <Button
                                     type="link"
                                     className="pn-plan-client-name"
@@ -839,14 +877,6 @@ function PlansPageContent() {
                         description={label('plans.noClients', 'No clients use this plan yet')}
                       />
                     )}
-                    <Space wrap>
-                      <Button onClick={openAddClient}>
-                        {label('plans.addExistingClient', 'Add existing')}
-                      </Button>
-                      <Button type="primary" onClick={() => setNewClientOpen(true)}>
-                        {label('plans.createClient', 'New client')}
-                      </Button>
-                    </Space>
                   </div>
                 ),
               },
