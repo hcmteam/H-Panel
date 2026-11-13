@@ -1985,61 +1985,17 @@ export default function ClientsPage() {
                                         aria-label={t('pages.clients.enabled')}
                                         onChange={(next) => onToggleEnable(row, next)}
                                       />
-                                      <Dropdown
-                                        trigger={['click']}
-                                        placement="bottomRight"
-                                        menu={{
-                                          items: [
-                                            {
-                                              key: 'qr',
-                                              label: (
-                                                <>
-                                                  <QrcodeOutlined aria-hidden />{' '}
-                                                  {t('pages.clients.qrCode')}
-                                                </>
-                                              ),
-                                              onClick: () => onShowQr(row.email),
-                                            },
-                                            {
-                                              key: 'reset',
-                                              label: (
-                                                <>
-                                                  <RetweetOutlined aria-hidden />{' '}
-                                                  {t('pages.inbounds.resetTraffic')}
-                                                </>
-                                              ),
-                                              onClick: () => onResetTraffic(row.email),
-                                            },
-                                            {
-                                              key: 'edit',
-                                              label: (
-                                                <>
-                                                  <EditOutlined aria-hidden /> {t('edit')}
-                                                </>
-                                              ),
-                                              onClick: () => onEdit(row.email),
-                                            },
-                                            {
-                                              key: 'delete',
-                                              danger: true,
-                                              label: (
-                                                <>
-                                                  <DeleteOutlined aria-hidden /> {t('delete')}
-                                                </>
-                                              ),
-                                              onClick: () => onDelete(row.email),
-                                            },
-                                          ],
-                                        }}
-                                      >
+                                      <Tooltip title={t('delete')}>
                                         <Button
                                           type="text"
+                                          danger
                                           size="small"
                                           className="row-action-trigger"
-                                          icon={<MoreOutlined aria-hidden />}
-                                          aria-label={t('more')}
+                                          icon={<DeleteOutlined aria-hidden />}
+                                          aria-label={t('delete')}
+                                          onClick={() => onDelete(row.email)}
                                         />
-                                      </Dropdown>
+                                      </Tooltip>
                                     </div>
                                   </div>
                                   <ClientCardComment comment={row.comment} />
