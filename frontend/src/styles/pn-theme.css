@@ -2129,13 +2129,6 @@ body:has(.pn-responsive-modal)
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.pn-plan-card .pn-plan-open {
-  min-width: 68px;
-  font-weight: 700;
-  border: 1px solid color-mix(in srgb, var(--li) 56%, var(--ln)) !important;
-  background: color-mix(in srgb, var(--li) 16%, var(--s1)) !important;
-}
-
 .ant-modal-root:has(.pn-responsive-modal) .ant-modal-content,
 .ant-modal-root:has(.pn-responsive-modal) .ant-modal-header,
 .ant-modal-root:has(.pn-responsive-modal) .ant-modal-body,
@@ -2360,4 +2353,14 @@ body:has(.pn-responsive-modal)
   .pn-plan-key-item {
     padding: 7px;
   }
+}
+
+
+/* Plan cards are the navigation target after removing the separate Open button. */
+.pn-plan-card[role="button"] {
+  cursor: pointer;
+}
+.pn-plan-card[role="button"]:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--li) 75%, white);
+  outline-offset: 3px;
 }
