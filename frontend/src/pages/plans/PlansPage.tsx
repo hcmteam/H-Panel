@@ -230,9 +230,9 @@ function PlansPageContent() {
       'inboundIds' in payload && Array.isArray(payload.inboundIds) ? payload.inboundIds : [];
     try {
       await applyPlanToClient(selectedPlan, email, inboundIds);
-      const clientRecord =
+      const clientRecord: Record<string, unknown> =
         'client' in payload && payload.client && typeof payload.client === 'object'
-          ? payload.client
+          ? (payload.client as Record<string, unknown>)
           : payload;
       const telegramId = String(clientRecord.tgId ?? '');
       const group = String(clientRecord.group ?? '');
