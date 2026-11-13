@@ -2012,8 +2012,7 @@ export default function ClientsPage() {
                             {filteredClients.map((row) => {
                               const bucket = clientBucket(row);
                               const online = !!row.enable && bucket !== 'depleted' && isOnline(row.email);
-                              const expired = bucket === 'depleted' ||
-                                (row.expiryTime > 0 && row.expiryTime <= Date.now());
+                              const expired = row.expiryTime > 0 && row.expiryTime <= Date.now();
                               const statusClass = online ? 'is-online' : expired ? 'is-expired' : 'is-offline';
                               return (
                                 <div
