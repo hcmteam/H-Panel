@@ -964,4 +964,3 @@ export default function PlansPage() {
     </Layout>
   );
 }
-
