@@ -66,7 +66,7 @@ const applyPlanToClient = async (
   plan: PlanModel,
   email: string,
   inboundIds: number[],
-  clientDetails: Pick<ClientDraft, 'telegramId' | 'group'>,
+  clientDetails: Pick<ClientDraft, 'telegramId' | 'group'> = {},
 ): Promise<void> => {
   const raw = await HttpUtil.get(clientManagementPath('get', email));
   const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
