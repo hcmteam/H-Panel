@@ -234,6 +234,18 @@
   padding: 2px 4px 2px;
 }
 
+.clients-select-all {
+  flex: 0 0 auto;
+  margin-inline-start: 2px;
+}
+
+.clients-bulk-dropdown .ant-dropdown-menu {
+  background: var(--ant-color-bg-container, #1f1f1f) !important;
+  opacity: 1;
+  backdrop-filter: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+}
+
 .card-pagination {
   display: flex;
   justify-content: center;
@@ -406,11 +418,22 @@
 
 .plans-scroller {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   overflow-x: auto;
-  padding: 2px 2px 6px;
+  padding: 5px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 12px;
+  background: var(--ant-color-fill-quaternary);
+  cursor: grab;
+  touch-action: pan-x;
+  user-select: none;
   scrollbar-width: none;
   scroll-snap-type: x proximity;
+}
+
+.plans-scroller.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
 }
 
 .plans-scroller::-webkit-scrollbar,
@@ -420,7 +443,7 @@
 
 .plan-card {
   display: flex;
-  flex: 0 0 118px;
+  flex: 0 0 108px;
   flex-direction: column;
   min-width: 0;
   padding: 7px 9px;
@@ -604,17 +627,6 @@
 
 .clients-page .client-card .ant-progress-bg {
   height: 6px !important;
-}
-
-@media (min-width: 900px) {
-  .plans-scroller {
-    overflow-x: visible;
-  }
-
-  .plan-card {
-    flex: 1 1 0;
-    min-width: 110px;
-  }
 }
 
 @media (max-width: 600px) {
