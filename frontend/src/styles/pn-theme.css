@@ -2662,7 +2662,6 @@ body:has(.pn-responsive-modal)
   }
 }
 
-
 /* Keep plan cards compact and put their edit action in the upper corner. */
 .pn-page .pn-plan-card {
   justify-content: flex-start !important;
