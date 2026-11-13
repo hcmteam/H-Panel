@@ -1440,7 +1440,6 @@ export default function ClientsPage() {
                               startScrollLeft: event.currentTarget.scrollLeft,
                               moved: false,
                             };
-                            event.currentTarget.setPointerCapture(event.pointerId);
                           }}
                           onPointerMove={(event) => {
                             const drag = planDragRef.current;
@@ -1448,6 +1447,9 @@ export default function ClientsPage() {
                             const delta = event.clientX - drag.startX;
                             if (Math.abs(delta) > 4) drag.moved = true;
                             if (drag.moved) {
+                              if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+                                event.currentTarget.setPointerCapture(event.pointerId);
+                              }
                               event.preventDefault();
                               event.currentTarget.scrollLeft = drag.startScrollLeft - delta;
                             }
