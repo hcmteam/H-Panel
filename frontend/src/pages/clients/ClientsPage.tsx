@@ -438,6 +438,14 @@ export default function ClientsPage() {
     }
   });
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const planScrollerRef = useRef<HTMLDivElement>(null);
+  const planDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressPlanClickRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -1411,7 +1419,49 @@ export default function ClientsPage() {
                           Manage →
                         </button>
                       </div>
-                      <div className="plans-scroller">
+                      <div
+                        className="plans-scroller"
+                        ref={planScrollerRef}
+                        onPointerDown={(event) => {
+                          if (event.button !== 0) return;
+                          planDragRef.current = {
+                            pointerId: event.pointerId,
+                            startX: event.clientX,
+                            startScrollLeft: event.currentTarget.scrollLeft,
+                            moved: false,
+                          };
+                          event.currentTarget.setPointerCapture(event.pointerId);
+                        }}
+                        onPointerMove={(event) => {
+                          const drag = planDragRef.current;
+                          if (!drag || drag.pointerId !== event.pointerId) return;
+                          const delta = event.clientX - drag.startX;
+                          if (Math.abs(delta) > 4) drag.moved = true;
+                          if (drag.moved) {
+                            event.preventDefault();
+                            event.currentTarget.scrollLeft = drag.startScrollLeft - delta;
+                          }
+                        }}
+                        onPointerUp={(event) => {
+                          const drag = planDragRef.current;
+                          if (drag?.pointerId === event.pointerId) {
+                            suppressPlanClickRef.current = drag.moved;
+                            planDragRef.current = null;
+                            window.setTimeout(() => { suppressPlanClickRef.current = false; }, 0);
+                          }
+                          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                            event.currentTarget.releasePointerCapture(event.pointerId);
+                          }
+                        }}
+                        onPointerCancel={() => { planDragRef.current = null; }}
+                        onClickCapture={(event) => {
+                          if (suppressPlanClickRef.current) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            suppressPlanClickRef.current = false;
+                          }
+                        }}
+                      >
                         {planData.length ? (
                           planData.map((plan) => {
                             const key = String(plan.id);
@@ -1584,6 +1634,7 @@ export default function ClientsPage() {
                             </Tag>
                           )}
                           <Dropdown
+                            rootClassName="clients-bulk-dropdown"
                             trigger={['click']}
                             placement="bottomRight"
                             menu={{
@@ -1708,11 +1759,11 @@ export default function ClientsPage() {
                         <Input
                           value={searchKey}
                           onChange={(e) => setSearchKey(e.target.value)}
-                          placeholder={t('pages.clients.searchPlaceholder')}
+                          placeholder="Search"
                           allowClear
                           prefix={<SearchOutlined aria-hidden />}
                           size={isMobile ? 'small' : 'middle'}
-                          style={{ maxWidth: 320 }}
+                          style={{ width: isMobile ? 160 : 240, maxWidth: isMobile ? 180 : 320 }}
                           aria-label={t('search')}
                         />
                         <Badge count={activeCount} size="small" offset={[-4, 4]}>
@@ -1742,6 +1793,15 @@ export default function ClientsPage() {
                             label: t(o.labelKey),
                           }))}
                         />
+                        {isMobile && filteredClients.length > 0 && (
+                          <Checkbox
+                            className="clients-select-all"
+                            checked={allSelected}
+                            indeterminate={someSelected}
+                            aria-label={t('pages.clients.selectAll')}
+                            onChange={(e) => selectAll(e.target.checked)}
+                          />
+                        )}
                         {activeCount > 0 && (
                           <Button
                             size={isMobile ? 'small' : 'middle'}
@@ -1895,20 +1955,6 @@ export default function ClientsPage() {
                       ) : (
                         <Spin aria-live="off" spinning={transitioning}>
                           <div className="client-cards">
-                            {filteredClients.length > 0 && (
-                              <div className="card-bulk-bar">
-                                <Checkbox
-                                  checked={allSelected}
-                                  indeterminate={someSelected}
-                                  onChange={(e) => selectAll(e.target.checked)}
-                                >
-                                  {t('pages.clients.selectAll')}
-                                </Checkbox>
-                                {selectedRowKeys.length > 0 && (
-                                  <span className="bulk-count">{selectedRowKeys.length}</span>
-                                )}
-                              </div>
-                            )}
                             {filteredClients.length === 0 && (
                               <div className="card-empty">
                                 <TeamOutlined aria-hidden style={{ fontSize: 28, opacity: 0.5 }} />
