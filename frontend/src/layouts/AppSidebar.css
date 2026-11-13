@@ -374,3 +374,28 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
 .ant-menu-item[data-menu-id$='/sponsors'] {
   display: none !important;
 }
+
+
+/* Keep the H-Panel mark readable in the narrow sidebar rail. */
+.ant-layout-sider-collapsed .sider-brand {
+  justify-content: center;
+  padding: 0;
+}
+.brand-text {
+  color: var(--ant-color-text, #f4f6ff);
+  font-weight: 750;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.brand-text.is-collapsed {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #8ea2ff, #22d3ee);
+  color: #06102a;
+  font-size: 17px;
+  font-weight: 850;
+  text-shadow: none;
+  box-shadow: 0 5px 14px rgba(34, 211, 238, 0.25), inset 0 1px 0 rgba(255,255,255,.55);
+}
