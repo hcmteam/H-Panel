@@ -890,3 +890,28 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Compact, high-contrast expiry status; use a single client card column on phones. */
+.clients-page .client-card-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  color: var(--ant-color-text);
+}
+.clients-page .client-expiry-status {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 999px;
+  background: var(--ant-color-fill-tertiary);
+  color: var(--ant-color-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .clients-page .client-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
