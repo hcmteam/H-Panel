@@ -53,8 +53,13 @@ _write_update_status() {
     mv -f "${tmp_file}" "${xui_update_status_file}" > /dev/null 2>&1
 }
 
+update_stage_dir=""
+
 _report_update_exit() {
     local code=$?
+    if [[ -n "${update_stage_dir}" && -d "${update_stage_dir}" ]]; then
+        rm -rf -- "${update_stage_dir}"
+    fi
     if [[ "${code}" -eq 0 ]]; then
         _write_update_status "success" "0"
     else
@@ -508,11 +513,42 @@ require_repo_files() {
     shift
     [[ "${ref}" == "main" ]] && return 0
     for name in "$@"; do
-        status=$(${curl_bin} -sIL --retry 3 --connect-timeout 15 -o /dev/null -w '%{http_code}' "https://raw.githubusercontent.com/MHSanaei/3x-ui/${ref}/${name}")
+        status=$(${curl_bin} -sIL --retry 3 --connect-timeout 15 -o /dev/null -w '%{http_code}' "https://raw.githubusercontent.com/hcmteam/H-Panel/${ref}/${name}")
         if [[ "${status}" != "200" ]]; then
             _fail "ERROR: ${name} is not available for ${ref} (HTTP ${status}). Update to a release that ships it, or to 'dev-latest'. The current installation is untouched."
         fi
     done
+}
+
+# Keep updater release selection aligned with install.sh: use the H-Panel
+# repository, prefer the latest stable release only when this architecture's
+# archive exists, then fall back to the rolling dev-latest asset.
+release_asset_available() {
+    local status
+    status=$(${curl_bin} -sSLI -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 60 "$1" 2>/dev/null) || return 1
+    [[ "$status" == "200" ]]
+}
+
+resolve_latest_tag() {
+    local url tag stable_asset dev_asset
+    stable_asset="https://github.com/hcmteam/H-Panel/releases/download"
+    dev_asset="${stable_asset}/dev-latest/x-ui-linux-$(arch).tar.gz"
+
+    url=$(${curl_bin} -sSLI -o /dev/null -w '%{url_effective}' --retry 5 --retry-delay 3 --connect-timeout 15 --max-time 60 "https://github.com/hcmteam/H-Panel/releases/latest" 2>/dev/null)
+    tag=${url##*/tag/}
+    if [[ "$tag" == "$url" || -z "$tag" || "$tag" == "latest" ]]; then
+        tag=$(${curl_bin} -Ls --retry 5 --retry-delay 3 --connect-timeout 15 --max-time 60 "https://api.github.com/repos/hcmteam/H-Panel/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+
+    if [[ -n "$tag" && "$tag" != "latest" ]] && release_asset_available "${stable_asset}/${tag}/x-ui-linux-$(arch).tar.gz"; then
+        echo "$tag"
+        return 0
+    fi
+    if release_asset_available "$dev_asset"; then
+        echo "dev-latest"
+        return 0
+    fi
+    return 1
 }
 
 update_x-ui() {
@@ -535,10 +571,7 @@ update_x-ui() {
         tag_version="${XUI_UPDATE_TAG}"
         echo -e "${green}Using update tag: ${tag_version}${plain}"
     else
-        tag_version=$(${curl_bin} -Ls "https://api.github.com/repos/MHSanaei/3x-ui/releases/latest" 2> /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        if [[ ! -n "$tag_version" ]]; then
-            _fail "ERROR: Failed to fetch x-ui version, it may be due to GitHub API restrictions, please try it later"
-        fi
+        tag_version=$(resolve_latest_tag) || _fail "ERROR: No installable H-Panel release was found for $(arch)"
     fi
     echo -e "Got x-ui latest version: ${tag_version}, beginning the installation..."
     # x-ui.rc and the unit files must come from the binary's own release; only the
@@ -550,7 +583,7 @@ update_x-ui() {
     # The unit files are only fetched when the release tarball lacks them, so
     # they are checked at that point instead of here.
     [[ $release == "alpine" ]] && require_repo_files "${script_ref}" "x-ui.rc"
-    ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
+    ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/hcmteam/H-Panel/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
     if [[ $? -ne 0 ]]; then
         _fail "ERROR: Failed to download x-ui, please be sure that your server can access GitHub"
     fi
@@ -563,7 +596,7 @@ update_x-ui() {
     # predating the sidecar) is tolerated with a warning.
     archive="${xui_folder}-linux-$(arch).tar.gz"
     rm -f "${archive}.sha256"
-    sidecar_code=$(${curl_bin} -sL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 60 -o "${archive}.sha256" -w '%{http_code}' "https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz.sha256" 2> /dev/null)
+    sidecar_code=$(${curl_bin} -sL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 60 -o "${archive}.sha256" -w '%{http_code}' "https://github.com/hcmteam/H-Panel/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz.sha256" 2> /dev/null)
     if [[ "${sidecar_code}" == "200" ]]; then
         expected_sha256=$(awk 'NR == 1 {print $1}' "${archive}.sha256")
         actual_sha256=$(sha256sum "${archive}" | awk '{print $1}')
@@ -581,13 +614,29 @@ update_x-ui() {
         _fail "ERROR: Failed to download the checksum for x-ui-linux-$(arch).tar.gz (HTTP ${sidecar_code})"
     fi
 
+    # Extract and validate the release while the current panel is still running.
+    # This catches corrupt or incomplete archives before service downtime.
+    update_stage_dir=$(mktemp -d "${xui_folder%/x-ui}/.x-ui-update.XXXXXX") || {
+        rm -f -- "${archive}"
+        _fail "ERROR: Could not create a temporary directory to validate the H-Panel release"
+    }
+    if ! tar -xzf "${archive}" -C "${update_stage_dir}" > /dev/null 2>&1; then
+        rm -f -- "${archive}"
+        _fail "ERROR: Failed to extract the H-Panel release archive; the current installation is untouched"
+    fi
+    staged_xui_dir="${update_stage_dir}/x-ui"
+    if [[ ! -s "${staged_xui_dir}/x-ui" || ! -s "${staged_xui_dir}/x-ui.sh" ]]; then
+        rm -f -- "${archive}"
+        _fail "ERROR: H-Panel release archive is missing required files; the current installation is untouched"
+    fi
+
     # Download everything before x-ui stops, because its Xray and any panel egress bridge
     # stop with it. Alpine's init script is the only file the archive lacks.
     if [[ $release == "alpine" ]]; then
         echo -e "${green}Downloading startup unit x-ui.rc...${plain}"
         xui_rc_temp="/etc/init.d/x-ui.tmp.$$"
         rm -f "${xui_rc_temp}"
-        ${curl_bin} -fLRo "${xui_rc_temp}" "https://raw.githubusercontent.com/MHSanaei/3x-ui/${script_ref}/x-ui.rc" > /dev/null 2>&1
+        ${curl_bin} -fLRo "${xui_rc_temp}" "https://raw.githubusercontent.com/hcmteam/H-Panel/${script_ref}/x-ui.rc" > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
             rm -f "${xui_rc_temp}" "${archive}"
             _fail "ERROR: Failed to download startup unit x-ui.rc, please be sure that your server can access GitHub"
@@ -651,15 +700,13 @@ update_x-ui() {
     fi
 
     echo -e "${green}Installing new x-ui version...${plain}"
-    tar zxvf x-ui-linux-$(arch).tar.gz > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        rm x-ui-linux-$(arch).tar.gz -f > /dev/null 2>&1
-        _fail "ERROR: Failed to extract the x-ui release archive -- the previous installation has already been removed, so the panel will not start until this is fixed; try running the update again"
+    rm -f -- "${archive}"
+    if ! cp -a "${staged_xui_dir}/." "${xui_folder}/"; then
+        _fail "ERROR: Failed to copy the validated H-Panel release into place; the service may need to be restored from backup"
     fi
-    rm x-ui-linux-$(arch).tar.gz -f > /dev/null 2>&1
-    cd x-ui > /dev/null 2>&1
-    if [[ $? -ne 0 || ! -s x-ui ]]; then
-        _fail "ERROR: Extracted x-ui archive is missing the x-ui binary -- the previous installation has already been removed, so the panel will not start until this is fixed; try running the update again"
+    cd "${xui_folder}" > /dev/null 2>&1 || _fail "ERROR: Could not enter the H-Panel installation directory"
+    if [[ ! -s x-ui ]]; then
+        _fail "ERROR: Installed H-Panel archive is missing the x-ui binary"
     fi
     chmod +x x-ui > /dev/null 2>&1
 
@@ -759,13 +806,13 @@ update_x-ui() {
                 echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
                 case "${release}" in
                     ubuntu | debian | armbian)
-                        service_unit_url="https://raw.githubusercontent.com/MHSanaei/3x-ui/${script_ref}/x-ui.service.debian"
+                        service_unit_url="https://raw.githubusercontent.com/hcmteam/H-Panel/${script_ref}/x-ui.service.debian"
                         ;;
                     arch | manjaro | parch)
-                        service_unit_url="https://raw.githubusercontent.com/MHSanaei/3x-ui/${script_ref}/x-ui.service.arch"
+                        service_unit_url="https://raw.githubusercontent.com/hcmteam/H-Panel/${script_ref}/x-ui.service.arch"
                         ;;
                     *)
-                        service_unit_url="https://raw.githubusercontent.com/MHSanaei/3x-ui/${script_ref}/x-ui.service.rhel"
+                        service_unit_url="https://raw.githubusercontent.com/hcmteam/H-Panel/${script_ref}/x-ui.service.rhel"
                         ;;
                 esac
 
