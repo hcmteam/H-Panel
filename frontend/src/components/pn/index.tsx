@@ -181,12 +181,11 @@ export function PlanCard({
 }) {
   const color = plan.clientsCount ? 'var(--gr)' : 'var(--li)';
   return (
+    // oxlint-disable-next-line jsx-a11y/no-static-element-interactions
     <article
       className="card tk pn-plan-card"
       style={{ '--c': color, '--p': '8%' } as CSSProperties}
-      // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       onClick={onClick}
-      // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       onKeyDown={(event) => {
         if (
           onClick &&
