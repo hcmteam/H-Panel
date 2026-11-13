@@ -2268,3 +2268,96 @@ body:has(.pn-responsive-modal)
     gap: 0;
   }
 }
+
+
+/* Keep plan cards scannable and make client/key rows easy to follow. */
+.pn-plan-card-name {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pn-plan-card-name:hover,
+.pn-plan-card-name:focus-visible {
+  color: var(--li, #8ea2ff);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pn-plan-client-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--ln, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  background: var(--s1, rgba(132, 148, 255, 0.08));
+}
+.pn-plan-client-name.ant-btn {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pn-plan-key-card.is-focused {
+  border-color: var(--li, #8ea2ff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--li, #8ea2ff) 24%, transparent);
+}
+.pn-plan-key-item {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--ln, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  background: var(--dockbg, rgba(20, 18, 50, 0.28));
+}
+.pn-plan-key-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.pn-plan-key-meta > b {
+  overflow: hidden;
+  color: var(--tx, inherit);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pn-plan-key-meta > span {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--li, #8ea2ff) 18%, transparent);
+  color: var(--li, #8ea2ff);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.pn-plan-key-item .ant-typography {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--s1, #292944) 65%, transparent);
+}
+@media (max-width: 640px) {
+  .pn-plan-client-row {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  .pn-plan-key-item {
+    padding: 7px;
+  }
+}
