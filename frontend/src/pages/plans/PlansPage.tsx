@@ -53,35 +53,34 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+const applyPlanToClient = async (plan: PlanModel, email: string): Promise<void> => {
+  const raw = await HttpUtil.get(clientManagementPath('get', email));
+  const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
+  if (!hydrated?.success || !hydrated.obj?.client) {
+    throw new Error(hydrated?.msg || 'Client ' + email + ' was not found.');
+  }
+
+  const client = hydrated.obj.client;
+  const updatedClient = {
+    ...client,
+    totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
+    expiryTime: plan.durationDays > 0 ? Date.now() + plan.durationDays * 24 * 60 * 60 * 1000 : 0,
+    limitIp: Math.max(0, Number(plan.limitIp) || 0),
+    limitHwid: Math.max(0, Number(plan.hwidLimit) || 0),
+    trafficReset: plan.trafficReset || 'never',
+  };
+  const result = await HttpUtil.post(clientManagementPath('update', email), updatedClient, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!result?.success) {
+    throw new Error(result?.msg || 'Could not apply the plan to ' + email + '.');
+  }
+};
+
 function PlansPageContent() {
   const { t } = useTranslation();
   const label = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
-  const applyPlanToClient = async (plan: PlanModel, email: string): Promise<void> => {
-    const raw = await HttpUtil.get(clientManagementPath('get', email));
-    const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
-    if (!hydrated?.success || !hydrated.obj?.client) {
-      throw new Error(hydrated?.msg || ('Client ' + email + ' was not found.'));
-    }
-
-    const client = hydrated.obj.client;
-    const updatedClient = {
-      ...client,
-      totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
-      expiryTime: plan.durationDays > 0 ? Date.now() + plan.durationDays * 24 * 60 * 60 * 1000 : 0,
-      limitIp: Math.max(0, Number(plan.limitIp) || 0),
-      limitHwid: Math.max(0, Number(plan.hwidLimit) || 0),
-      trafficReset: plan.trafficReset || 'never',
-    };
-    const result = await HttpUtil.post(
-      clientManagementPath('update', email),
-      updatedClient,
-      { headers: { 'Content-Type': 'application/json' } },
-    );
-    if (!result?.success) {
-      throw new Error(result?.msg || ('Could not apply the plan to ' + email + '.'));
-    }
-  };
   const [plans, setPlans] = useState<PlanModel[]>(() => {
     const stored = readStored<PlanModel[]>(PLAN_STORAGE_KEY, []);
     const ids = stored.map((plan) => Number(plan.id)).filter(Number.isFinite);
@@ -98,23 +97,34 @@ function PlansPageContent() {
     const loadPlanConfig = async () => {
       try {
         const response = await HttpUtil.get(clientManagementPath('planConfig', '..'));
-        const config = response?.obj as { plans?: PlanModel[]; clients?: typeof linkedClients; configured?: boolean } | undefined;
+        const config = response?.obj as
+          | { plans?: PlanModel[]; clients?: typeof linkedClients; configured?: boolean }
+          | undefined;
         if (active && response?.success && config?.configured) {
           setPlans(Array.isArray(config.plans) ? config.plans : []);
           setLinkedClients(Array.isArray(config.clients) ? config.clients : []);
         }
-      } catch { /* Keep the local copy available if the server is temporarily unreachable. */ }
-      finally { if (active) setPlanConfigLoaded(true); }
+      } catch {
+        /* Keep the local copy available if the server is temporarily unreachable. */
+      } finally {
+        if (active) setPlanConfigLoaded(true);
+      }
     };
     void loadPlanConfig();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
   useEffect(() => {
     if (!planConfigLoaded) return;
     localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plans));
     localStorage.setItem(PLAN_CLIENT_STORAGE_KEY, JSON.stringify(linkedClients));
     const timer = window.setTimeout(() => {
-      void HttpUtil.post(clientManagementPath('planConfig', '..'), { plans, clients: linkedClients }, { headers: { 'Content-Type': 'application/json' } });
+      void HttpUtil.post(
+        clientManagementPath('planConfig', '..'),
+        { plans, clients: linkedClients },
+        { headers: { 'Content-Type': 'application/json' } },
+      );
     }, 250);
     return () => window.clearTimeout(timer);
   }, [plans, linkedClients, planConfigLoaded]);
@@ -143,7 +153,7 @@ function PlansPageContent() {
   const savePlan = async () => {
     const values = await form.validateFields();
     const applyToExisting = Boolean(values.applyToExistingClients);
-    const planValues = { ...values, startAfterFirstUse: false };
+    const planValues = { ...values };
     delete planValues.applyToExistingClients;
 
     if (editor === 'edit' && selectedPlan) {
@@ -153,11 +163,15 @@ function PlansPageContent() {
         id: selectedPlan.id,
         clientsCount: selectedPlan.clientsCount ?? 0,
       };
-      setPlans((current) => current.map((plan) => (plan.id === selectedPlan.id ? updatedPlan : plan)));
+      setPlans((current) =>
+        current.map((plan) => (plan.id === selectedPlan.id ? updatedPlan : plan)),
+      );
       setSelectedPlan(updatedPlan);
 
       if (applyToExisting) {
-        const assigned = linkedClients.filter((client) => String(client.planId) === String(selectedPlan.id));
+        const assigned = linkedClients.filter(
+          (client) => String(client.planId) === String(selectedPlan.id),
+        );
         let applied = 0;
         const failed: string[] = [];
         for (const client of assigned) {
@@ -170,10 +184,15 @@ function PlansPageContent() {
         }
         if (failed.length) {
           messageApi.warning(
-            label('plans.applyPartial', 'Plan saved. Applied to ' + applied + '; failed for ' + failed.join(', ') + '.'),
+            label(
+              'plans.applyPartial',
+              'Plan saved. Applied to ' + applied + '; failed for ' + failed.join(', ') + '.',
+            ),
           );
         } else {
-          messageApi.success(label('plans.applied', 'Plan saved and applied to ' + applied + ' client(s).'));
+          messageApi.success(
+            label('plans.applied', 'Plan saved and applied to ' + applied + ' client(s).'),
+          );
         }
       } else {
         messageApi.success(label('plans.localSave', 'Plan saved.'));
@@ -206,6 +225,15 @@ function PlansPageContent() {
         messageApi.error(label('plans.selectPlan', 'Choose a plan first.'));
         return;
       }
+      const normalizedEmail = values.email.trim().toLocaleLowerCase();
+      if (
+        linkedClients.some((client) => client.email.trim().toLocaleLowerCase() === normalizedEmail)
+      ) {
+        messageApi.error(
+          label('plans.clientAlreadyAssigned', 'This client is already assigned to a plan.'),
+        );
+        return;
+      }
       await applyPlanToClient(plan, values.email.trim());
       const client = { ...values, email: values.email.trim(), id: RandomUtil.randomUUID() };
       setLinkedClients((current) => [...current, client]);
@@ -217,13 +245,19 @@ function PlansPageContent() {
         ),
       );
       setSelectedPlan((current) =>
-        current ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 } : current,
+        current && String(current.id) === String(values.planId)
+          ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 }
+          : current,
       );
       messageApi.success(label('plans.clientCreated', 'Client linked and plan limits applied.'));
       setClientOpen(false);
       clientForm.resetFields();
     } catch (error) {
-      messageApi.error(error instanceof Error ? error.message : label('plans.applyFailed', 'Could not apply plan.'));
+      messageApi.error(
+        error instanceof Error
+          ? error.message
+          : label('plans.applyFailed', 'Could not apply plan.'),
+      );
     }
   };
   const sheetFooter = (onCancel: () => void, onSave: () => void, saveText: string) => (
@@ -415,6 +449,12 @@ function PlansPageContent() {
               />
             </Form.Item>
 
+            {editor === 'edit' && (
+              <Form.Item name="startAfterFirstUse" valuePropName="checked">
+                <Switch aria-label={label('plans.startAfterFirstUse', 'Start after first use')} />{' '}
+                <span>{label('plans.startAfterFirstUse', 'Start after first use')}</span>
+              </Form.Item>
+            )}
             {editor === 'edit' && (
               <Form.Item name="applyToExistingClients" valuePropName="checked">
                 <Switch

@@ -2897,4 +2897,21 @@ export const sections: readonly Section[] = [
       },
     ],
   },
+  {
+    id: 'client-plans',
+    title: 'Client plans',
+    description: 'Create and retrieve reusable client plan configuration.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/panel/api/clients/planConfig',
+        summary: 'Retrieve the saved client plan configuration.',
+      },
+      {
+        method: 'POST',
+        path: '/panel/api/clients/planConfig',
+        summary: 'Save client plan configuration.',
+      },
+    ],
+  },
 ];

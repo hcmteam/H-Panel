@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -35,6 +36,13 @@ type nodeUnderContract struct {
 
 func startContractNode(t *testing.T) *nodeUnderContract {
 	t.Helper()
+
+	if _, err := os.Stat("bin"); os.IsNotExist(err) {
+		if err := os.Mkdir("bin", 0o755); err != nil {
+			t.Fatalf("create Xray config directory: %v", err)
+		}
+		t.Cleanup(func() { _ = os.Remove("bin") })
+	}
 	dbDir := t.TempDir()
 	t.Setenv("XUI_DB_FOLDER", dbDir)
 	dbtest.InitDB(t, filepath.Join(dbDir, "x-ui.db"))

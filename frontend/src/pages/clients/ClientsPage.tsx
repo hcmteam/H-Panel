@@ -323,6 +323,9 @@ function sortValueFor(column: string | null, order: 'ascend' | 'descend' | null)
 }
 
 export default function ClientsPage() {
+  const showLegacyTable =
+    import.meta.env.MODE === 'development' &&
+    new URLSearchParams(window.location.search).get('clientsView') === 'table';
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isDark, isUltra, antdThemeConfig } = useTheme();
@@ -422,24 +425,38 @@ export default function ClientsPage() {
   const [bulkDetachOpen, setBulkDetachOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [planData, setPlanData] = useState<PlanModel[]>(() => {
-    try { return JSON.parse(localStorage.getItem('hpanel.plans.v1') || '[]') as PlanModel[]; }
-    catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('hpanel.plans.v1') || '[]') as PlanModel[];
+    } catch {
+      return [];
+    }
   });
   const [planLinks, setPlanLinks] = useState<PlanClientLink[]>(() => {
-    try { return JSON.parse(localStorage.getItem('hpanel.plan-clients.v1') || '[]') as PlanClientLink[]; }
-    catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('hpanel.plan-clients.v1') || '[]') as PlanClientLink[];
+    } catch {
+      return [];
+    }
   });
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    void HttpUtil.get(clientManagementPath('planConfig', '..')).then((response) => {
-      const config = response?.obj as { plans?: PlanModel[]; clients?: PlanClientLink[]; configured?: boolean } | undefined;
-      if (!active || !response?.success || !config?.configured) return;
-      if (Array.isArray(config.plans)) setPlanData(config.plans);
-      if (Array.isArray(config.clients)) setPlanLinks(config.clients);
-    }).catch(() => { /* The saved browser copy remains available while offline. */ });
-    return () => { active = false; };
+    void HttpUtil.get(clientManagementPath('planConfig', '..'))
+      .then((response) => {
+        const config = response?.obj as
+          | { plans?: PlanModel[]; clients?: PlanClientLink[]; configured?: boolean }
+          | undefined;
+        if (!active || !response?.success || !config?.configured) return;
+        if (Array.isArray(config.plans)) setPlanData(config.plans);
+        if (Array.isArray(config.clients)) setPlanLinks(config.clients);
+      })
+      .catch(() => {
+        /* The saved browser copy remains available while offline. */
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const planEmails = useMemo(() => {
@@ -1375,34 +1392,105 @@ export default function ClientsPage() {
                   <Col span={24}>
                     <section className="clients-redesign">
                       <header className="clients-page-head">
-                        <div><h1>Clients</h1><p>{summary.total} clients · {summary.onlineCount} online</p></div>
-                        <Button className="clients-add-button" type="primary" icon={<PlusOutlined aria-hidden />} onClick={onAdd} aria-label={t('pages.clients.addClients')} />
+                        <div>
+                          <h1>Clients</h1>
+                          <p>
+                            {summary.total} clients · {summary.onlineCount} online
+                          </p>
+                        </div>
+                        <Button
+                          className="clients-add-button"
+                          type="primary"
+                          icon={<PlusOutlined aria-hidden />}
+                          onClick={onAdd}
+                          aria-label={t('pages.clients.addClients')}
+                        />
                       </header>
                       <div className="plans-section-head">
                         <span>PLANS</span>
-                        <button type="button" onClick={() => navigate('/plans')}>Manage →</button>
+                        <button type="button" onClick={() => navigate('/plans')}>
+                          Manage →
+                        </button>
                       </div>
                       <div className="plans-scroller">
-                        {planData.length ? planData.map((plan) => {
-                          const key = String(plan.id);
-                          const selected = selectedPlanId === key;
-                          return <button type="button" key={key} className={selected ? 'plan-card selected' : 'plan-card'} onClick={() => { setSelectedPlanId(selected ? null : key); setCurrentPage(1); }}>
-                            <b title={plan.name}>{plan.name}</b>
-                            <span className="plan-card-bottom"><span>IP {plan.limitIp || 0} · HWID {plan.hwidLimit || 0}</span><strong>{planEmails.get(key)?.size ?? 0}</strong></span>
-                          </button>;
-                        }) : <span className="plans-empty">No plans yet</span>}
+                        {planData.length ? (
+                          planData.map((plan) => {
+                            const key = String(plan.id);
+                            const selected = selectedPlanId === key;
+                            return (
+                              <button
+                                type="button"
+                                key={key}
+                                className={selected ? 'plan-card selected' : 'plan-card'}
+                                onClick={() => {
+                                  setSelectedPlanId(selected ? null : key);
+                                  setCurrentPage(1);
+                                }}
+                              >
+                                <b title={plan.name}>{plan.name}</b>
+                                <span className="plan-card-bottom">
+                                  <span>
+                                    IP {plan.limitIp || 0} · HWID {plan.hwidLimit || 0}
+                                  </span>
+                                  <strong>{planEmails.get(key)?.size ?? 0}</strong>
+                                </span>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <span className="plans-empty">No plans yet</span>
+                        )}
                       </div>
-                      <div className="client-status-chips" role="group" aria-label="Client status filters">
+                      <div
+                        className="client-status-chips"
+                        role="group"
+                        aria-label="Client status filters"
+                      >
                         {[
-                          { key: 'active', label: 'Active', count: summary.active, buckets: ['active'] },
-                          { key: 'online', label: 'Online', count: summary.onlineCount, buckets: ['online'] },
-                          { key: 'depleting', label: 'Depleting', count: summary.expiringCount, buckets: ['expiring'] },
-                          { key: 'ended', label: 'Ended', count: summary.depletedCount + summary.deactiveCount, buckets: ['depleted', 'deactive'] },
+                          {
+                            key: 'active',
+                            label: 'Active',
+                            count: summary.active,
+                            buckets: ['active'],
+                          },
+                          {
+                            key: 'online',
+                            label: 'Online',
+                            count: summary.onlineCount,
+                            buckets: ['online'],
+                          },
+                          {
+                            key: 'depleting',
+                            label: 'Depleting',
+                            count: summary.expiringCount,
+                            buckets: ['expiring'],
+                          },
+                          {
+                            key: 'ended',
+                            label: 'Ended',
+                            count: summary.depletedCount + summary.deactiveCount,
+                            buckets: ['depleted', 'deactive'],
+                          },
                         ].map((chip) => {
-                          const selected = filters.buckets.length === chip.buckets.length && chip.buckets.every((bucket) => filters.buckets.includes(bucket));
-                          return <button type="button" key={chip.key} className={selected ? 'client-status-chip selected' : 'client-status-chip'} onClick={() => { setFilters({ ...filters, buckets: selected ? [] : chip.buckets }); setCurrentPage(1); }}>
-                            <span>{chip.label}</span><strong>{chip.count}</strong>
-                          </button>;
+                          const selected =
+                            filters.buckets.length === chip.buckets.length &&
+                            chip.buckets.every((bucket) => filters.buckets.includes(bucket));
+                          return (
+                            <button
+                              type="button"
+                              key={chip.key}
+                              className={
+                                selected ? 'client-status-chip selected' : 'client-status-chip'
+                              }
+                              onClick={() => {
+                                setFilters({ ...filters, buckets: selected ? [] : chip.buckets });
+                                setCurrentPage(1);
+                              }}
+                            >
+                              <span>{chip.label}</span>
+                              <strong>{chip.count}</strong>
+                            </button>
+                          );
                         })}
                       </div>
                     </section>
@@ -1782,7 +1870,7 @@ export default function ClientsPage() {
                         </div>
                       )}
 
-                      {false ? (
+                      {showLegacyTable ? (
                         <Table<ClientRecord>
                           columns={columns}
                           dataSource={sortedClients}
@@ -1864,7 +1952,11 @@ export default function ClientsPage() {
                                       <Badge status={bucketBadgeStatus(bucket)} />
                                     )}
                                     <span className="tag-name">{row.email}</span>
-                                    {planNameByEmail.has(row.email) && <span className="client-plan-tag">{planNameByEmail.get(row.email)}</span>}
+                                    {planNameByEmail.has(row.email) && (
+                                      <span className="client-plan-tag">
+                                        {planNameByEmail.get(row.email)}
+                                      </span>
+                                    )}
                                     {bucket === 'depleted' && (
                                       <Tag color="red" className="status-tag">
                                         {t('depleted')}
@@ -1960,10 +2052,34 @@ export default function ClientsPage() {
                                     trafficDiff={trafficDiff}
                                   />
                                   <div className="client-card-footer">
-                                    <span>{!row.expiryTime ? 'No expiry' : row.expiryTime < 0 ? expiryRelative(row) : Math.max(0, Math.ceil((row.expiryTime - Date.now()) / 86400000)) + ' days left'} · {row.enable && isOnline(row.email) ? 'Online' : 'Offline'}</span>
+                                    <span>
+                                      {!row.expiryTime
+                                        ? 'No expiry'
+                                        : row.expiryTime < 0
+                                          ? expiryRelative(row)
+                                          : Math.max(
+                                              0,
+                                              Math.ceil((row.expiryTime - Date.now()) / 86400000),
+                                            ) + ' days left'}{' '}
+                                      · {row.enable && isOnline(row.email) ? 'Online' : 'Offline'}
+                                    </span>
                                     <div className="client-card-shortcuts">
-                                      <Tooltip title={t('pages.clients.qrCode')}><Button className="client-shortcut key" aria-label={t('pages.clients.qrCode')} icon={<KeyOutlined aria-hidden />} onClick={() => onShowQr(row.email)} /></Tooltip>
-                                      <Tooltip title={t('edit')}><Button className="client-shortcut" aria-label={t('edit')} icon={<EditOutlined aria-hidden />} onClick={() => onEdit(row.email)} /></Tooltip>
+                                      <Tooltip title={t('pages.clients.qrCode')}>
+                                        <Button
+                                          className="client-shortcut key"
+                                          aria-label={t('pages.clients.qrCode')}
+                                          icon={<KeyOutlined aria-hidden />}
+                                          onClick={() => onShowQr(row.email)}
+                                        />
+                                      </Tooltip>
+                                      <Tooltip title={t('edit')}>
+                                        <Button
+                                          className="client-shortcut"
+                                          aria-label={t('edit')}
+                                          icon={<EditOutlined aria-hidden />}
+                                          onClick={() => onEdit(row.email)}
+                                        />
+                                      </Tooltip>
                                     </div>
                                   </div>
                                   {(() => {

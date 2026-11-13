@@ -5070,6 +5070,10 @@
     {
       "name": "WebSocket",
       "description": "Real-time status updates via WebSocket. Connect once at <code>ws://<panel>/ws</code> to receive a stream of JSON messages without polling. Requires an authenticated session cookie (Bearer token auth is not supported). Each message has a <code>type</code> field that identifies the payload shape."
+    },
+    {
+      "name": "Client plans",
+      "description": "Create and retrieve reusable client plan configuration."
     }
   ],
   "paths": {
@@ -17162,6 +17166,64 @@
             }
           }
         ]
+      }
+    },
+    "/panel/api/clients/planConfig": {
+      "get": {
+        "tags": [
+          "Client plans"
+        ],
+        "summary": "Retrieve the saved client plan configuration.",
+        "operationId": "get_panel_api_clients_planConfig",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Client plans"
+        ],
+        "summary": "Save client plan configuration.",
+        "operationId": "post_panel_api_clients_planConfig",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
