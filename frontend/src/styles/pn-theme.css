@@ -1081,13 +1081,13 @@ body {
 .pn-page {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 18px !important;
+  padding: 14px !important;
   color: var(--tx) !important;
 }
 .pn-page > .hd {
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px !important;
+  gap: 8px;
+  margin-bottom: 10px !important;
 }
 .pn-page .hd h1 {
   font-size: 24px !important;
