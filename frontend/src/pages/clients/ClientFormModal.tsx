@@ -1254,7 +1254,7 @@ export default function ClientFormModal({
                         <Select
                           id={`${uid}-inbounds`}
                           mode="multiple"
-                          disabled={!!planPreset}
+                          disabled={!!planPreset?.inboundIds?.length}
                           tagRender={selectTagRender}
                           value={inboundIds}
                           onChange={handleInboundChange}
