@@ -6,7 +6,6 @@ import { LockOutlined } from '@ant-design/icons';
 import { HttpUtil } from '@/utils';
 import type { HappLinkResult } from '@/generated/types';
 import { HappLinkResultSchema } from '@/generated/zod';
-import { isPostQuantumLink } from '@/lib/xray/inbound-link';
 import { LinkTags, linkMetaText, parseLinkParts } from '@/lib/xray/link-label';
 import { QrPanel } from '@/pages/inbounds/qr';
 import type { ClientRecord, InboundOption } from '@/hooks/useClients';
@@ -129,7 +128,7 @@ function SubscriptionQrPresentation({
         onChange={onVariantChange}
       />
       {variant === 'standard' ? (
-        <QrPanel value={standardLink} remark={remark} />
+        <QrPanel value={standardLink} remark={remark} showQr={false} showValue />
       ) : !happLinkEnabled ? (
         <Empty
           image={<LockOutlined aria-hidden style={{ fontSize: 40, opacity: 0.45 }} />}
@@ -175,7 +174,7 @@ function SubscriptionQrPresentation({
                       title={t('pages.clients.happLinkQrTooLong')}
                     />
                   ) : null}
-                  <QrPanel value={happLink} remark={remark} showQr={showHappQr} />
+                  <QrPanel value={happLink} remark={remark} showQr={false} showValue />
                 </>
               ) : null}
               {happError ? (
@@ -446,7 +445,7 @@ function ClientQrModalContent({
       out.push({
         key: 'subJson',
         label: `${t('subscription.title')} (JSON)`,
-        children: <QrPanel value={subJsonLink} remark={`${client?.email || ''} — JSON`} />,
+        children: <QrPanel value={subJsonLink} remark={`${client?.email || ''} — JSON`} showQr={false} showValue />,
       });
     }
     links.forEach((link, idx) => {
@@ -467,7 +466,8 @@ function ClientQrModalContent({
           <QrPanel
             value={link}
             remark={parts?.remark || `${client?.email || ''} #${idx + 1}`}
-            showQr={!isPostQuantumLink(link)}
+            showQr={false}
+            showValue
           />
         ),
       });
@@ -485,7 +485,7 @@ function ClientQrModalContent({
       out.push({
         key: `wg-config-${inbound.id}-${endpoint}`,
         label,
-        children: <QrPanel value={text} remark={meta.qrRemark} downloadName={meta.fileName} />,
+        children: <QrPanel value={text} remark={meta.qrRemark} downloadName={meta.fileName} showQr={false} showValue />,
       });
     });
     awgConfigs.forEach(({ inbound, endpoint, text }) => {
@@ -522,6 +522,8 @@ function ClientQrModalContent({
             value={text}
             remark={[name, multi].filter(Boolean).join(' - ')}
             downloadName={`${[name, multi.replace(/[^\w.-]+/g, '_')].filter(Boolean).join('-')}.yaml`}
+            showQr={false}
+            showValue
           />
         ),
       });
@@ -557,7 +559,7 @@ function ClientQrModalContent({
   return (
     <Modal
       open={open}
-      title={client ? `${t('qrCode')} — ${client.email}` : t('qrCode')}
+      title={client ? `Key — ${client.email}` : 'Key'}
       footer={null}
       width={520}
       centered
