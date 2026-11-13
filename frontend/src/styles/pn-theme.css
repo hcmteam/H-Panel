@@ -2584,7 +2584,6 @@ body:has(.pn-responsive-modal)
   font-size: 10px;
 }
 
-
 /* Compact mobile plan cards; the card itself remains the detail navigation target. */
 .pn-page:not(.pn-plan-detail-page) > .hd {
   margin: 0 0 12px !important;
