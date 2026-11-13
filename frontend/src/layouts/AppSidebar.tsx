@@ -8,7 +8,6 @@ import {
   ApartmentOutlined,
   CloseOutlined,
   CloudServerOutlined,
-  ClusterOutlined,
   CodeOutlined,
   DatabaseOutlined,
   DiscordOutlined,
@@ -44,6 +43,7 @@ const SHORTCUT_MODIFIER = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? 'âŒ
 const DOCS_URL = 'https://docs.sanaei.dev/';
 const REPO_URL = 'https://github.com/MHSanaei/3x-ui';
 const LOGOUT_KEY = '__logout__';
+const SETTINGS_GROUP_PATHS = ['/nodes', '/hosts', '/outbound', '/routing'];
 const RAIL_WIDTH = 72;
 const SIDER_WIDTH = 220;
 const SIDEBAR_PINNED_KEY = 'sidebar-pinned';
@@ -200,7 +200,20 @@ export default function AppSidebar() {
     [t],
   );
 
-  const navItems = useMemo(() => tabs.filter((tab) => tab.key !== LOGOUT_KEY), [tabs]);
+  const navItems = useMemo(
+    () => [
+      ...tabs.filter(
+        (tab) =>
+          tab.key !== LOGOUT_KEY &&
+          tab.key !== '/settings' &&
+          tab.key !== '/xray' &&
+          !SETTINGS_GROUP_PATHS.includes(tab.key) &&
+          tab.key !== '/api-docs',
+      ),
+      { key: '/settings-menu', icon: SettingOutlined, title: 'Settings Menu' },
+    ],
+    [tabs],
+  );
   const utilItems = useMemo(() => tabs.filter((tab) => tab.key === LOGOUT_KEY), [tabs]);
 
   const settingsChildren = useMemo<NonNullable<MenuProps['items']>>(() => {
@@ -250,30 +263,24 @@ export default function AppSidebar() {
         label: t('pages.settings.subBalancers.menu'),
       });
     }
-    return children;
-  }, [t, showSubFormats, showSubBalancers]);
-
-  const xrayChildren = useMemo<NonNullable<MenuProps['items']>>(
-    () => [
+    children.push(
+      ...PANEL_ROUTES.filter((route) => SETTINGS_GROUP_PATHS.includes(route.path)).map((route) => {
+        const Icon = route.icon;
+        return { key: route.path, icon: <Icon aria-hidden />, label: t(route.titleKey) };
+      }),
       {
         key: '/xray#basic',
-        icon: <SettingOutlined aria-hidden />,
-        label: t('pages.xray.basicTemplate'),
+        icon: <ToolOutlined aria-hidden />,
+        label: t('menu.xray'),
       },
       {
-        key: '/xray#balancer',
-        icon: <ClusterOutlined aria-hidden />,
-        label: t('pages.xray.Balancers'),
-      },
-      { key: '/xray#dns', icon: <DatabaseOutlined aria-hidden />, label: 'DNS' },
-      {
-        key: '/xray#advanced',
+        key: '/api-docs',
         icon: <CodeOutlined aria-hidden />,
-        label: t('pages.xray.advancedTemplate'),
+        label: t('menu.apiDocs'),
       },
-    ],
-    [t],
-  );
+    );
+    return children;
+  }, [t, showSubFormats, showSubBalancers]);
 
   const settingsActive = pathname === '/settings';
   const xrayActive = pathname === '/xray';
@@ -285,7 +292,7 @@ export default function AppSidebar() {
         ? '/'
         : pathname;
 
-  const openSubmenu = settingsActive ? '/settings' : xrayActive ? '/xray' : null;
+  const openSubmenu = settingsActive || xrayActive || SETTINGS_GROUP_PATHS.includes(pathname) || pathname === '/api-docs' ? '/settings-menu' : null;
   const [openKeys, setOpenKeys] = useState<string[]>(() => (openSubmenu ? [openSubmenu] : []));
   if (openSubmenu && !openKeys.includes(openSubmenu)) {
     setOpenKeys([...openKeys, openSubmenu]);
@@ -295,7 +302,7 @@ export default function AppSidebar() {
     (items: typeof tabs): MenuProps['items'] =>
       items.map((tab) => {
         const Icon = tab.icon;
-        if (tab.key === '/settings') {
+        if (tab.key === '/settings-menu') {
           return {
             key: tab.key,
             icon: <Icon aria-hidden />,
@@ -303,17 +310,9 @@ export default function AppSidebar() {
             children: settingsChildren,
           };
         }
-        if (tab.key === '/xray') {
-          return {
-            key: tab.key,
-            icon: <Icon aria-hidden />,
-            label: tab.title,
-            children: xrayChildren,
-          };
-        }
         return { key: tab.key, icon: <Icon aria-hidden />, label: tab.title, title: '' };
       }),
-    [settingsChildren, xrayChildren],
+    [settingsChildren],
   );
 
   const openLink = useCallback(
