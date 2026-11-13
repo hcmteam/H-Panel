@@ -247,7 +247,7 @@ function PlansPageContent() {
       ? selectedPlan.inboundIds
       : requestedInboundIds;
     const durationDays = Math.max(0, Number(selectedPlan.durationDays) || 0);
-    const clientPayload = {
+    const clientPayload: Record<string, unknown> = {
       ...sourceClient,
       totalGB: Math.round(Math.max(0, Number(selectedPlan.totalGB) || 0) * 1024 ** 3),
       expiryTime:
