@@ -1447,7 +1447,9 @@ export default function ClientsPage() {
                             suppressPlanClickRef.current = drag.moved;
                             event.currentTarget.classList.remove('is-dragging');
                             planDragRef.current = null;
-                            window.setTimeout(() => { suppressPlanClickRef.current = false; }, 0);
+                            window.setTimeout(() => {
+                              suppressPlanClickRef.current = false;
+                            }, 0);
                           }
                           if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                             event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2291,3 +2293,4 @@ function bucketChipLabel(b: string, t: (k: string) => string): string {
       return b;
   }
 }
+
