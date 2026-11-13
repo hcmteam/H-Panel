@@ -1026,7 +1026,6 @@ export default function ClientFormModal({
                               ) : null}
                             </div>
                           </Col>
-                          </Row>
                         ) : (
                           <>
                         <Col xs={24} md={12}>
@@ -1119,8 +1118,11 @@ export default function ClientFormModal({
                             </span>
                           </Form.Item>
                         </Col>
+                          </>
+                        )}
                       </Row>
-
+                      {!planPreset && (
+                        <>
                       <Row gutter={16}>
                         <Col xs={24} md={12}>
                           {delayedStart ? (
@@ -1198,8 +1200,8 @@ export default function ClientFormModal({
                         resetCount={client?.traffic?.resetCount || 0}
                         setExpiry={(expiry) => methods.setValue('expiryDate', expiry)}
                       />
-                          </>
-                        )}
+                        </>
+                      )}
 
                       <Row gutter={16}>
                         <Col xs={24} md={12}>
