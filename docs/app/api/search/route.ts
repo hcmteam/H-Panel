@@ -5,13 +5,9 @@ import { createFromSource } from 'fumadocs-core/search/server';
 export const revalidate = false;
 export const dynamic = 'force-static';
 
-// Every locale still serves English fallback content, so all map to zbsearch's
-// English tokenizer (its SUPPORTED_LANGUAGES has no Persian or Chinese anyway).
+// The docs currently configure English as the only supported locale.
 export const { staticGET: GET } = createFromSource(source, {
   localeMap: {
     en: 'english',
-    fa: 'english',
-    ru: 'english',
-    zh: 'english',
   },
 });
