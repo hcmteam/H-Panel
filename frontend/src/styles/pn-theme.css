@@ -2063,3 +2063,91 @@ body:has(.pn-responsive-modal)
   background: var(--bg) !important;
   color: var(--tx) !important;
 }
+
+
+/* Clear hover, press and keyboard feedback on the Plans screen. */
+.pn-page .ant-btn {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease,
+    border-color 140ms ease;
+}
+.pn-page .ant-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(89, 116, 255, 0.22);
+  filter: brightness(1.08);
+}
+.pn-page .ant-btn:not(:disabled):active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.24);
+  filter: brightness(0.96);
+}
+.pn-page .ant-btn:focus-visible,
+.pn-page .pn-new-plan:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--li) 75%, white) !important;
+  outline-offset: 3px;
+}
+.pn-page .card {
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.pn-page .pn-stat {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.pn-page .pn-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.pn-plan-card {
+  border: 1px solid color-mix(in srgb, var(--li) 35%, var(--ln));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.13);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.pn-plan-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--li) 68%, var(--ln));
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.pn-plan-card .pn-plan-open {
+  min-width: 68px;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--li) 56%, var(--ln)) !important;
+  background: color-mix(in srgb, var(--li) 16%, var(--s1)) !important;
+}
+.ant-modal-root:has(.pn-responsive-modal) .ant-modal-content,
+.ant-modal-root:has(.pn-responsive-modal) .ant-modal-header,
+.ant-modal-root:has(.pn-responsive-modal) .ant-modal-body,
+.ant-modal-root:has(.pn-responsive-modal) .ant-modal-footer,
+.pn-responsive-modal .ant-modal-content,
+.pn-responsive-modal .ant-modal-header,
+.pn-responsive-modal .ant-modal-body,
+.pn-responsive-modal .ant-modal-footer {
+  background: var(--surf) !important;
+  color: var(--tx) !important;
+}
+.pn-responsive-modal .ant-modal-header,
+.pn-responsive-modal .ant-modal-footer {
+  border-color: var(--ln) !important;
+}
+.pn-responsive-modal .ant-modal-title,
+.pn-responsive-modal .ant-form-item-label > label,
+.pn-responsive-modal .ant-typography {
+  color: var(--tx) !important;
+}
+.pn-responsive-modal .ant-input,
+.pn-responsive-modal .ant-input-number,
+.pn-responsive-modal .ant-select-selector {
+  background: var(--s1) !important;
+  color: var(--tx) !important;
+  border-color: var(--ln) !important;
+}
+.pn-responsive-modal .ant-select-selection-placeholder,
+.pn-responsive-modal .ant-select-arrow {
+  color: var(--mu) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pn-page .ant-btn,
+  .pn-plan-card {
+    transition: none;
+  }
+}
