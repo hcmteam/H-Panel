@@ -2122,11 +2122,12 @@ body:has(.pn-responsive-modal)
 }
 
 .pn-plan-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--li) 68%, var(--ln));
+  transform: translateY(-4px) scale(1.01);
+  border-color: color-mix(in srgb, var(--li) 78%, var(--ln));
   box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 22px 42px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--li) 24%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .ant-modal-root:has(.pn-responsive-modal) .ant-modal-content,
@@ -2283,15 +2284,64 @@ body:has(.pn-responsive-modal)
   text-underline-offset: 3px;
 }
 .pn-plan-client-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  margin: 4px 0;
-  padding: 7px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
   border: 1px solid var(--ln, rgba(255, 255, 255, 0.1));
   border-radius: 10px;
   background: var(--s1, rgba(132, 148, 255, 0.08));
+}
+.pn-plan-clients-panel {
+  display: block;
+  min-height: 0;
+  padding: 12px;
+  background: color-mix(in srgb, var(--s1) 68%, var(--surf));
+}
+.pn-plan-client-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.pn-plan-client-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.pn-plan-client-heading .ant-typography {
+  flex: none;
+  font-size: 11px;
+}
+.pn-plan-client-inbounds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  min-width: 0;
+}
+.pn-plan-client-inbounds .ant-tag {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-color: color-mix(in srgb, var(--li) 35%, var(--ln));
+  background: color-mix(in srgb, var(--li) 15%, var(--s1));
+  color: var(--li);
+}
+.pn-plan-client-actions {
+  align-self: flex-start;
+  max-width: 100%;
+}
+.pn-plan-client-actions .ant-btn {
+  font-size: 11px;
 }
 .pn-plan-client-name.ant-btn {
   min-width: 0;
@@ -2344,12 +2394,16 @@ body:has(.pn-responsive-modal)
   background: color-mix(in srgb, var(--s1, #292944) 65%, transparent);
 }
 @media (max-width: 640px) {
-  .pn-plan-client-row {
-    gap: 6px;
-    padding: 6px 8px;
+  .pn-plan-client-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .pn-plan-key-item {
     padding: 7px;
+  }
+}
+@media (max-width: 480px) {
+  .pn-plan-client-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

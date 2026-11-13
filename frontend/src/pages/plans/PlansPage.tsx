@@ -11,13 +11,14 @@ import {
   Space,
   Spin,
   Switch,
+  Tag,
   Tabs,
   Typography,
   message,
   Popconfirm,
 } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, RetweetOutlined } from '@ant-design/icons';
 import { PlanCard, PnStatTile, ResponsiveSheet, type PlanModel } from '@/components/pn';
 import { clientManagementPath } from '@/api/client-management';
 import { ClientHydrateSchema } from '@/schemas/client';
@@ -26,7 +27,12 @@ import { HttpUtil, RandomUtil } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
 import { selectTagRender } from '@/components/form';
 import ClientFormModal from '@/pages/clients/ClientFormModal';
-import { useClients } from '@/hooks/useClients';
+import {
+  useClients,
+  type ClientRecord,
+  type ExternalLink,
+  type ExternalLinkInput,
+} from '@/hooks/useClients';
 
 type PlanDraft = Omit<PlanModel, 'id' | 'clientsCount'> & { applyToExistingClients?: boolean };
 type ClientDraft = {
@@ -37,6 +43,18 @@ type ClientDraft = {
   inbounds?: number[];
 };
 type PlanKeyResult = { links: string[]; error?: string };
+type PlanClientSavePayload =
+  | Record<string, unknown>
+  | { client: Record<string, unknown>; inboundIds: number[] };
+type PlanClientSaveMeta =
+  | { isEdit: false; email: string; externalLinks: unknown[] }
+  | {
+      isEdit: true;
+      email: string;
+      attach: number[];
+      detach: number[];
+      externalLinks: ExternalLinkInput[];
+    };
 type PlanInbound = {
   id: number;
   protocol: string;
@@ -146,7 +164,17 @@ const applyPlanToClient = async (
 function PlansPageContent() {
   const { t } = useTranslation();
   const label = (key: string, fallback: string) => t(key, { defaultValue: fallback });
-  const { inbounds: clientInbounds, tgBotEnable, create: createClient } = useClients();
+  const {
+    inbounds: clientInbounds,
+    tgBotEnable,
+    create: createClient,
+    hydrate,
+    update,
+    attach,
+    detach,
+    setExternalLinks,
+    resetTraffic,
+  } = useClients();
   const [messageApi, messageContextHolder] = message.useMessage();
 
   const [plans, setPlans] = useState<PlanModel[]>(() => {
@@ -232,6 +260,14 @@ function PlansPageContent() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
+  const [editingPlanClient, setEditingPlanClient] = useState<{
+    client: ClientRecord;
+    inboundIds: number[];
+    externalLinks: ExternalLink[];
+    tunnelAllowedIPs: Record<number, string>;
+  } | null>(null);
+  const [editingPlanClientOpen, setEditingPlanClientOpen] = useState(false);
+  const [planClientActionEmail, setPlanClientActionEmail] = useState<string | null>(null);
   const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [planKeys, setPlanKeys] = useState<Record<string, PlanKeyResult>>({});
@@ -380,6 +416,102 @@ function PlansPageContent() {
         : current,
     );
     messageApi.success(label('plans.clientRemovedFromPlan', 'Client removed from this plan.'));
+  };
+
+
+
+  const openPlanClientEdit = async (client: ClientDraft & { id: string }) => {
+    try {
+      const full = await hydrate(client.email);
+      if (!full?.client) throw new Error('Could not load this client for editing.');
+      setEditingPlanClient({
+        client: full.client,
+        inboundIds: full.inboundIds ?? client.inbounds ?? [],
+        externalLinks: full.externalLinks ?? [],
+        tunnelAllowedIPs: full.tunnelAllowedIPs ?? {},
+      });
+      setEditingPlanClientOpen(true);
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : 'Could not load this client.');
+    }
+  };
+
+  const savePlanClient = async (
+    payload: PlanClientSavePayload,
+    meta: PlanClientSaveMeta,
+  ): Promise<{ success?: boolean; msg?: string } | null> => {
+    if (!meta.isEdit) return null;
+    const updated = await update(meta.email, payload);
+    if (!updated?.success) return updated;
+    const rawEmail = (payload as { email?: unknown }).email;
+    const email = typeof rawEmail === 'string' && rawEmail.trim() ? rawEmail.trim() : meta.email;
+    if (meta.attach.length) {
+      const result = await attach(email, meta.attach);
+      if (!result?.success) return result;
+    }
+    if (meta.detach.length) {
+      const result = await detach(email, meta.detach);
+      if (!result?.success) return result;
+    }
+    const links = await setExternalLinks(email, meta.externalLinks);
+    if (!links?.success) return links;
+    setLinkedClients((current) =>
+      current.map((item) => (item.email === meta.email ? { ...item, email } : item)),
+    );
+    return updated;
+  };
+
+  const addClientDays = async (client: ClientDraft & { id: string }) => {
+    setPlanClientActionEmail(client.email);
+    try {
+      const full = await hydrate(client.email);
+      const record = full?.client;
+      if (!record) throw new Error('Could not load this client.');
+      const expiry = Number(record.expiryTime) || 0;
+      if (expiry === 0) throw new Error('This client has no expiry date to extend.');
+      const extra = 30 * 24 * 60 * 60 * 1000;
+      const nextExpiry = expiry < 0 ? expiry - extra : Math.max(Date.now(), expiry) + extra;
+      const fields = { ...record } as Record<string, unknown>;
+      const allowedIps = fields.allowedIps ?? fields.allowedIPs ?? fields.AllowedIPs;
+      delete fields.allowedIps;
+      delete fields.allowedIPs;
+      delete fields.AllowedIPs;
+      const normalizedAllowedIps = Array.isArray(allowedIps)
+        ? allowedIps.filter((value): value is string => typeof value === 'string')
+        : typeof allowedIps === 'string'
+          ? allowedIps
+              .split(/[\\n,]/)
+              .map((value) => value.trim())
+              .filter(Boolean)
+          : undefined;
+      const result = await update(client.email, {
+        ...fields,
+        id: record.uuid,
+        expiryTime: nextExpiry,
+        ...(normalizedAllowedIps ? { allowedIps: normalizedAllowedIps } : {}),
+      });
+      if (!result?.success) throw new Error(result?.msg || 'Could not add 30 days.');
+      messageApi.success('30 days added to ' + client.email + '.');
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : 'Could not add 30 days.');
+    } finally {
+      setPlanClientActionEmail(null);
+    }
+  };
+
+  const resetClientTraffic = async (client: ClientDraft & { id: string }) => {
+    setPlanClientActionEmail(client.email);
+    try {
+      const full = await hydrate(client.email);
+      if (!full?.client) throw new Error('Could not load this client.');
+      const result = await resetTraffic(full.client);
+      if (!result?.success) throw new Error(result?.msg || 'Could not reset client traffic.');
+      messageApi.success('Traffic usage reset for ' + client.email + '.');
+    } catch (error) {
+      messageApi.error(error instanceof Error ? error.message : 'Could not reset traffic.');
+    } finally {
+      setPlanClientActionEmail(null);
+    }
   };
 
   const closeEditor = () => {
@@ -578,57 +710,132 @@ function PlansPageContent() {
                 key: 'clients',
                 label: label('plans.clients', 'Clients'),
                 children: (
-                  <div className="pn-empty-state">
+                  <div className="pn-empty-state pn-plan-clients-panel">
                     {linkedClients.filter(
                       (client) => String(client.planId) === String(selectedPlan.id),
                     ).length ? (
-                      linkedClients
-                        .filter((client) => String(client.planId) === String(selectedPlan.id))
-                        .map((client) => (
-                          <div className="pn-plan-client-row" key={client.id}>
-                            <Button
-                              type="link"
-                              className="pn-plan-client-name"
-                              onClick={() => {
-                                setFocusedKeyEmail(client.email);
-                                setActiveTab('keys');
-                              }}
-                            >
-                              {client.email}
-                            </Button>
-                            <Space size={8}>
-                              {client.telegramId ? (
-                                <Typography.Text type="secondary">
-                                  {client.telegramId}
-                                </Typography.Text>
-                              ) : null}
-                              <Popconfirm
-                                title={label(
-                                  'plans.removeClientTitle',
-                                  'Remove this client from the plan?',
-                                )}
-                                description={label(
-                                  'plans.removeClientDescription',
-                                  'The client account will remain on the VPS.',
-                                )}
-                                okText={label('common.remove', 'Remove')}
-                                cancelText={label('common.cancel', 'Cancel')}
-                                onConfirm={() => removeClientFromPlan(client)}
-                              >
-                                <Button
-                                  danger
-                                  type="text"
-                                  size="small"
-                                  icon={<DeleteOutlined aria-hidden />}
-                                  aria-label={label(
-                                    'plans.removeClient',
-                                    'Remove client from plan',
+                      <div className="pn-plan-client-grid">
+                        {linkedClients
+                          .filter((client) => String(client.planId) === String(selectedPlan.id))
+                          .map((client) => {
+                            const clientInboundIds = client.inbounds?.length
+                              ? client.inbounds
+                              : (selectedPlan.inboundIds ?? []);
+                            const busy = planClientActionEmail === client.email;
+                            return (
+                              <article className="pn-plan-client-row" key={client.id}>
+                                <div className="pn-plan-client-heading">
+                                  <Button
+                                    type="link"
+                                    className="pn-plan-client-name"
+                                    title={client.email}
+                                    onClick={() => {
+                                      setFocusedKeyEmail(client.email);
+                                      setActiveTab('keys');
+                                    }}
+                                  >
+                                    {client.email}
+                                  </Button>
+                                  {client.telegramId ? (
+                                    <Typography.Text type="secondary">
+                                      {client.telegramId}
+                                    </Typography.Text>
+                                  ) : null}
+                                </div>
+                                <div className="pn-plan-client-inbounds" aria-label="Inbounds">
+                                  {clientInboundIds.length ? (
+                                    clientInboundIds.map((id) => {
+                                      const inbound = inbounds.find((item) => item.id === id);
+                                      const name =
+                                        inbound?.remark ||
+                                        inbound?.tag ||
+                                        inbound?.protocol ||
+                                        String(id);
+                                      return (
+                                        <Tag key={id} title={name}>
+                                          {name}
+                                        </Tag>
+                                      );
+                                    })
+                                  ) : (
+                                    <Typography.Text type="secondary">
+                                      {label('pages.clients.attachedInbounds', 'Inbounds')}: —
+                                    </Typography.Text>
                                   )}
-                                />
-                              </Popconfirm>
-                            </Space>
-                          </div>
-                        ))
+                                </div>
+                                <Space wrap size={[4, 4]} className="pn-plan-client-actions">
+                                  <Button
+                                    size="small"
+                                    icon={<EditOutlined aria-hidden />}
+                                    onClick={() => void openPlanClientEdit(client)}
+                                  >
+                                    {label('common.edit', 'Edit')}
+                                  </Button>
+                                  <Popconfirm
+                                    title={label('pages.inbounds.resetTraffic', 'Reset traffic')}
+                                    description={label(
+                                      'pages.inbounds.resetTrafficContent',
+                                      'Reset this client’s traffic usage?',
+                                    )}
+                                    okText={label('reset', 'Reset')}
+                                    cancelText={label('cancel', 'Cancel')}
+                                    onConfirm={() => void resetClientTraffic(client)}
+                                  >
+                                    <Button
+                                      size="small"
+                                      icon={<RetweetOutlined aria-hidden />}
+                                      loading={busy}
+                                    >
+                                      {label('plans.resetTraffic', 'Reset GB')}
+                                    </Button>
+                                  </Popconfirm>
+                                  <Popconfirm
+                                    title={label('plans.add30DaysTitle', 'Add 30 days?')}
+                                    description={label(
+                                      'plans.add30DaysDescription',
+                                      'Extend this client’s expiry date by 30 days.',
+                                    )}
+                                    okText={label('common.add', 'Add')}
+                                    cancelText={label('common.cancel', 'Cancel')}
+                                    onConfirm={() => void addClientDays(client)}
+                                  >
+                                    <Button
+                                      size="small"
+                                      icon={<PlusOutlined aria-hidden />}
+                                      loading={busy}
+                                    >
+                                      {label('plans.add30Days', '+30 days')}
+                                    </Button>
+                                  </Popconfirm>
+                                  <Popconfirm
+                                    title={label(
+                                      'plans.removeClientTitle',
+                                      'Remove this client from the plan?',
+                                    )}
+                                    description={label(
+                                      'plans.removeClientDescription',
+                                      'The client account will remain on the VPS.',
+                                    )}
+                                    okText={label('common.remove', 'Remove')}
+                                    cancelText={label('common.cancel', 'Cancel')}
+                                    onConfirm={() => removeClientFromPlan(client)}
+                                  >
+                                    <Button
+                                      danger
+                                      type="text"
+                                      size="small"
+                                      icon={<DeleteOutlined aria-hidden />}
+                                      aria-label={label(
+                                        'plans.removeClient',
+                                        'Remove client from plan',
+                                      )}
+                                    />
+                                  </Popconfirm>
+                                </Space>
+                              </article>
+                            );
+                          })}
+                      </div>
                     ) : (
                       <Empty
                         description={label('plans.noClients', 'No clients use this plan yet')}
@@ -817,6 +1024,20 @@ function PlansPageContent() {
           save={createNewPlanClient}
           planPreset={selectedPlan ?? undefined}
           onOpenChange={setNewClientOpen}
+        />
+        <ClientFormModal
+          open={editingPlanClientOpen}
+          mode="edit"
+          client={editingPlanClient?.client ?? null}
+          inbounds={clientInbounds}
+          attachedIds={editingPlanClient?.inboundIds ?? []}
+          attachedExternalLinks={editingPlanClient?.externalLinks ?? []}
+          tunnelAllowedIPs={editingPlanClient?.tunnelAllowedIPs ?? {}}
+          tgBotEnable={tgBotEnable}
+          groups={[]}
+          save={savePlanClient}
+          resetTraffic={resetTraffic}
+          onOpenChange={setEditingPlanClientOpen}
         />
         <ResponsiveSheet
           open={editor !== null}

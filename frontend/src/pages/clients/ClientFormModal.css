@@ -26,6 +26,35 @@
   color: var(--tx, var(--ant-color-text)) !important;
 }
 
+.ant-modal.client-form-modal .ant-input,
+.ant-modal.client-form-modal .ant-input-affix-wrapper,
+.ant-modal.client-form-modal .ant-input-number,
+.ant-modal.client-form-modal .ant-select-selector,
+.ant-modal.client-form-modal .ant-picker {
+  background: var(--s1, var(--ant-color-fill-tertiary)) !important;
+  color: var(--tx, var(--ant-color-text)) !important;
+  border-color: var(--ln, var(--ant-color-border)) !important;
+  box-shadow: none;
+}
+
+.ant-modal.client-form-modal .ant-input::placeholder,
+.ant-modal.client-form-modal .ant-select-selection-placeholder,
+.ant-modal.client-form-modal .ant-picker-input > input::placeholder {
+  color: var(--mu, var(--ant-color-text-placeholder)) !important;
+  opacity: 1;
+}
+
+.ant-modal.client-form-modal .ant-input-number-input,
+.ant-modal.client-form-modal .ant-picker-input > input {
+  color: var(--tx, var(--ant-color-text)) !important;
+}
+
+.ant-modal.client-form-modal .ant-select-arrow,
+.ant-modal.client-form-modal .ant-picker-suffix,
+.ant-modal.client-form-modal .ant-input-suffix {
+  color: var(--mu, var(--ant-color-text-secondary)) !important;
+}
+
 .ant-modal.client-form-modal .ant-input-number-disabled,
 .ant-modal.client-form-modal .ant-input-number-disabled .ant-input-number-input {
   background: var(--s1, var(--ant-color-fill-tertiary)) !important;
