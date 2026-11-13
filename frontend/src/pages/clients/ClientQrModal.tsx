@@ -1,28 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
-import { Alert, Button, Collapse, Empty, Modal, Segmented, Spin, Tag, Typography } from "antd";
-import { LockOutlined } from "@ant-design/icons";
-import { HttpUtil } from "@/utils";
-import type { HappLinkResult } from "@/generated/types";
-import { HappLinkResultSchema } from "@/generated/zod";
-import { LinkTags, linkMetaText, parseLinkParts } from "@/lib/xray/link-label";
-import { QrPanel } from "@/pages/inbounds/qr";
-import type { ClientRecord, InboundOption } from "@/hooks/useClients";
-import { formatTunnelConfigMeta } from "@/lib/inbounds/label";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+import { Alert, Button, Collapse, Empty, Modal, Segmented, Spin, Tag, Typography } from 'antd';
+import { LockOutlined } from '@ant-design/icons';
+import { HttpUtil } from '@/utils';
+import type { HappLinkResult } from '@/generated/types';
+import { HappLinkResultSchema } from '@/generated/zod';
+import { LinkTags, linkMetaText, parseLinkParts } from '@/lib/xray/link-label';
+import { QrPanel } from '@/pages/inbounds/qr';
+import type { ClientRecord, InboundOption } from '@/hooks/useClients';
+import { formatTunnelConfigMeta } from '@/lib/inbounds/label';
 import {
   buildWireguardClientConfig,
   findWireguardInbounds,
   isWireguardClient,
-} from "./wireguardConfig";
+} from './wireguardConfig';
 import {
   buildAmneziaWGClientConfig,
   findAmneziaWGInbounds,
   isAmneziaWGClient,
-} from "./amneziawgConfig";
-import { buildTuicClientConfig, findTuicInbound, isTuicClient } from "./tuicConfig";
-import { tunnelConfigEndpoints, tunnelEndpointLabel } from "./tunnelEndpoints";
-import type { HostRecord } from "@/schemas/api/host";
+} from './amneziawgConfig';
+import { buildTuicClientConfig, findTuicInbound, isTuicClient } from './tuicConfig';
+import { tunnelConfigEndpoints, tunnelEndpointLabel } from './tunnelEndpoints';
+import type { HostRecord } from '@/schemas/api/host';
 
 interface SubSettings {
   enable: boolean;
@@ -50,11 +50,11 @@ interface ApiMsg<T = unknown> {
   obj?: T;
 }
 
-type QrVariant = "standard" | "happ";
-type HappError = "too_long" | "unavailable" | null;
+type QrVariant = 'standard' | 'happ';
+type HappError = 'too_long' | 'unavailable' | null;
 
-const HAPP_CRYPT5_PREFIX = "happ://crypt5/";
-const HAPP_SETTINGS_PATH = "/settings?subscriptionTab=happ#subscription";
+const HAPP_CRYPT5_PREFIX = 'happ://crypt5/';
+const HAPP_SETTINGS_PATH = '/settings?subscriptionTab=happ#subscription';
 const HAPP_QR_MAX_BYTES = 2953;
 const UTF8_ENCODER = new TextEncoder();
 
@@ -106,27 +106,27 @@ function SubscriptionQrPresentation({
   const showHappQr = canRenderHappQr(happLink);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Segmented<QrVariant>
         block
         value={variant}
         options={[
-          { label: t("pages.clients.qrStandard"), value: "standard" },
+          { label: t('pages.clients.qrStandard'), value: 'standard' },
           {
             label: (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 {!happLinkEnabled ? (
-                  <LockOutlined aria-label={t("pages.clients.happLinkDisabledHint")} />
+                  <LockOutlined aria-label={t('pages.clients.happLinkDisabledHint')} />
                 ) : null}
-                <span>{t("pages.clients.happLinkOptionLabel")}</span>
+                <span>{t('pages.clients.happLinkOptionLabel')}</span>
               </span>
             ),
-            value: "happ",
+            value: 'happ',
           },
         ]}
         onChange={onVariantChange}
       />
-      {variant === "standard" ? (
+      {variant === 'standard' ? (
         <QrPanel value={standardLink} remark={remark} showQr={false} showValue />
       ) : !happLinkEnabled ? (
         <Empty
@@ -135,22 +135,22 @@ function SubscriptionQrPresentation({
           style={{
             minHeight: 190,
             margin: 0,
-            padding: "20px 12px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
+            padding: '20px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
           description={
-            <div style={{ maxWidth: 400, margin: "0 auto" }}>
-              <Typography.Text strong>{t("pages.clients.happLinkDisabledTitle")}</Typography.Text>
-              <Typography.Paragraph type="secondary" style={{ margin: "6px 0 0" }}>
-                {t("pages.clients.happLinkDisabledDescription")}
+            <div style={{ maxWidth: 400, margin: '0 auto' }}>
+              <Typography.Text strong>{t('pages.clients.happLinkDisabledTitle')}</Typography.Text>
+              <Typography.Paragraph type="secondary" style={{ margin: '6px 0 0' }}>
+                {t('pages.clients.happLinkDisabledDescription')}
               </Typography.Paragraph>
             </div>
           }
         >
           <Button type="primary" onClick={onOpenHappSettings}>
-            {t("pages.clients.happLinkSettingsAction")}
+            {t('pages.clients.happLinkSettingsAction')}
           </Button>
         </Empty>
       ) : (
@@ -159,7 +159,7 @@ function SubscriptionQrPresentation({
             style={{ marginBottom: 16 }}
             type="warning"
             showIcon
-            title={t("pages.clients.happLinkDisclosure")}
+            title={t('pages.clients.happLinkDisclosure')}
           />
           <Spin aria-live="off" spinning={happLoading}>
             <div style={{ minHeight: happLoading ? 48 : undefined }}>
@@ -170,7 +170,7 @@ function SubscriptionQrPresentation({
                       style={{ marginBottom: 12 }}
                       type="info"
                       showIcon
-                      title={t("pages.clients.happLinkQrTooLong")}
+                      title={t('pages.clients.happLinkQrTooLong')}
                     />
                   ) : null}
                   <QrPanel value={happLink} remark={remark} showQr={false} showValue />
@@ -181,20 +181,20 @@ function SubscriptionQrPresentation({
                   type="error"
                   showIcon
                   title={
-                    happError === "too_long"
-                      ? t("pages.clients.happLinkSourceTooLong")
-                      : t("pages.clients.happLinkErrorHint", {
-                          dashboard: t("menu.dashboard"),
-                          logs: t("pages.index.logs"),
+                    happError === 'too_long'
+                      ? t('pages.clients.happLinkSourceTooLong')
+                      : t('pages.clients.happLinkErrorHint', {
+                          dashboard: t('menu.dashboard'),
+                          logs: t('pages.index.logs'),
                         })
                   }
                 />
               ) : null}
             </div>
           </Spin>
-          {happLink || happError === "unavailable" ? (
+          {happLink || happError === 'unavailable' ? (
             <Button style={{ marginTop: 12 }} onClick={onRegenerate}>
-              {happError ? t("pages.clients.happLinkRetry") : t("regenerate")}
+              {happError ? t('pages.clients.happLinkRetry') : t('regenerate')}
             </Button>
           ) : null}
         </div>
@@ -206,20 +206,20 @@ function SubscriptionQrPresentation({
 const DEFAULT_SUB: SubSettings = {
   enable: false,
   happLinkEnable: false,
-  subURI: "",
-  subJsonURI: "",
+  subURI: '',
+  subJsonURI: '',
   subJsonEnable: false,
-  publicHost: "",
+  publicHost: '',
 };
 
 export default function ClientQrModal(props: ClientQrModalProps) {
   const subSettings = props.subSettings ?? DEFAULT_SUB;
-  const subId = props.client?.subId ?? "";
+  const subId = props.client?.subId ?? '';
   const subLink =
-    subId && subSettings.enable && subSettings.subURI ? subSettings.subURI + subId : "";
+    subId && subSettings.enable && subSettings.subURI ? subSettings.subURI + subId : '';
   const happLinkEnabled = subSettings.happLinkEnable === true;
   // A gate or source change remounts this scope to clear Happ state and retire any in-flight response.
-  const scopeKey = `${props.client?.id ?? ""}\0${subId}\0${subLink}\0${happLinkEnabled ? 1 : 0}`;
+  const scopeKey = `${props.client?.id ?? ''}\0${subId}\0${subLink}\0${happLinkEnabled ? 1 : 0}`;
 
   return <ClientQrModalContent key={scopeKey} {...props} />;
 }
@@ -240,29 +240,29 @@ function ClientQrModalContent({
 
   const subId = client?.subId;
   const subEnabled = !!subSettings?.enable;
-  const subLink = subId && subEnabled && subSettings?.subURI ? subSettings.subURI + subId : "";
+  const subLink = subId && subEnabled && subSettings?.subURI ? subSettings.subURI + subId : '';
   const subJsonLink =
     subId && subEnabled && subSettings?.subJsonEnable && subSettings?.subJsonURI
       ? subSettings.subJsonURI + subId
-      : "";
+      : '';
   const clientId = client?.id;
-  const clientSubId = subId ?? "";
+  const clientSubId = subId ?? '';
   const happLinkEnabled = subSettings.happLinkEnable === true;
-  const [variant, setVariant] = useState<QrVariant>("standard");
+  const [variant, setVariant] = useState<QrVariant>('standard');
   const [happAttempt, setHappAttempt] = useState(0);
-  const [happLink, setHappLink] = useState("");
+  const [happLink, setHappLink] = useState('');
   const [happLoading, setHappLoading] = useState(false);
   const [happError, setHappError] = useState<HappError>(null);
   const canGenerateHapp =
     happLinkEnabled &&
-    typeof clientId === "number" &&
+    typeof clientId === 'number' &&
     Number.isSafeInteger(clientId) &&
     clientId > 0 &&
     !!clientSubId &&
     !!subLink;
 
   useEffect(() => {
-    if (!open || variant !== "happ" || !canGenerateHapp) return;
+    if (!open || variant !== 'happ' || !canGenerateHapp) return;
 
     let cancelled = false;
 
@@ -281,13 +281,13 @@ function ClientQrModalContent({
         } else {
           // Only this fixed API code is safe to localize; arbitrary error messages stay hidden.
           setHappError(
-            msg?.success === false && msg.msg === "happ_source_too_long"
-              ? "too_long"
-              : "unavailable",
+            msg?.success === false && msg.msg === 'happ_source_too_long'
+              ? 'too_long'
+              : 'unavailable',
           );
         }
       } catch {
-        if (!cancelled) setHappError("unavailable");
+        if (!cancelled) setHappError('unavailable');
       } finally {
         if (!cancelled) setHappLoading(false);
       }
@@ -301,19 +301,19 @@ function ClientQrModalContent({
 
   const selectVariant = useCallback(
     (nextVariant: QrVariant) => {
-      const generateHapp = nextVariant === "happ" && happLinkEnabled;
+      const generateHapp = nextVariant === 'happ' && happLinkEnabled;
       setVariant(nextVariant);
-      setHappLink("");
+      setHappLink('');
       setHappLoading(generateHapp && canGenerateHapp);
-      setHappError(generateHapp && !canGenerateHapp ? "unavailable" : null);
+      setHappError(generateHapp && !canGenerateHapp ? 'unavailable' : null);
     },
     [canGenerateHapp, happLinkEnabled],
   );
 
   const regenerateHappLink = useCallback(() => {
-    setHappLink("");
+    setHappLink('');
     setHappLoading(canGenerateHapp);
-    setHappError(canGenerateHapp ? null : "unavailable");
+    setHappError(canGenerateHapp ? null : 'unavailable');
     if (!canGenerateHapp) return;
     setHappAttempt((attempt) => attempt + 1);
   }, [canGenerateHapp]);
@@ -331,10 +331,10 @@ function ClientQrModalContent({
   const wgConfigs = useMemo(() => {
     if (!client || !isWireguardClient(client)) return [];
     const host = window.location.hostname;
-    const publicHost = subSettings.publicHost ?? "";
+    const publicHost = subSettings.publicHost ?? '';
     return wgInbounds
       .flatMap((ib) => {
-        const address = tunnelAllowedIPs?.[ib.id] ?? "";
+        const address = tunnelAllowedIPs?.[ib.id] ?? '';
         return tunnelConfigEndpoints(ib, hosts, host, publicHost).map((ep) => ({
           inbound: ib,
           endpoint: tunnelEndpointLabel(ep),
@@ -351,10 +351,10 @@ function ClientQrModalContent({
   const awgConfigs = useMemo(() => {
     if (!client || !isAmneziaWGClient(client)) return [];
     const host = window.location.hostname;
-    const publicHost = subSettings.publicHost ?? "";
+    const publicHost = subSettings.publicHost ?? '';
     return awgInbounds
       .flatMap((ib) => {
-        const address = tunnelAllowedIPs?.[ib.id] ?? "";
+        const address = tunnelAllowedIPs?.[ib.id] ?? '';
         return tunnelConfigEndpoints(ib, hosts, host, publicHost).map((ep) => ({
           inbound: ib,
           endpoint: tunnelEndpointLabel(ep),
@@ -368,8 +368,8 @@ function ClientQrModalContent({
   const tuicConfigs = useMemo(() => {
     if (!client || !tuicInbound || !isTuicClient(client)) return [];
     const host = window.location.hostname;
-    const publicHost = subSettings.publicHost ?? "";
-    return tunnelConfigEndpoints(tuicInbound, hosts, host, publicHost, "clash").map((ep) => ({
+    const publicHost = subSettings.publicHost ?? '';
+    return tunnelConfigEndpoints(tuicInbound, hosts, host, publicHost, 'clash').map((ep) => ({
       endpoint: tunnelEndpointLabel(ep),
       text: buildTuicClientConfig(client, tuicInbound, host, publicHost, ep),
     }));
@@ -384,14 +384,14 @@ function ClientQrModalContent({
     links.length > 0;
 
   // The reset runs during render so the effect only carries the request.
-  const openSubId = open ? (client?.subId ?? "") : "";
+  const openSubId = open ? (client?.subId ?? '') : '';
   const [syncedSubId, setSyncedSubId] = useState(openSubId);
   if (openSubId !== syncedSubId) {
     setSyncedSubId(openSubId);
     setLinks([]);
     setLoading(!!openSubId);
-    setVariant("standard");
-    setHappLink("");
+    setVariant('standard');
+    setHappLink('');
     setHappLoading(false);
     setHappError(null);
   }
@@ -422,13 +422,13 @@ function ClientQrModalContent({
     const out: { key: string; label: React.ReactNode; children: React.ReactNode }[] = [];
     if (subLink) {
       out.push({
-        key: "sub",
-        label: t("subscription.title"),
+        key: 'sub',
+        label: t('subscription.title'),
         children: (
           <SubscriptionQrPresentation
             variant={variant}
             standardLink={subLink}
-            remark={`${client?.email || ""} — ${t("subscription.title")}`}
+            remark={`${client?.email || ''} — ${t('subscription.title')}`}
             happLink={happLink}
             happLoading={happLoading}
             happError={happError}
@@ -442,12 +442,12 @@ function ClientQrModalContent({
     }
     if (subJsonLink) {
       out.push({
-        key: "subJson",
-        label: `${t("subscription.title")} (JSON)`,
+        key: 'subJson',
+        label: `${t('subscription.title')} (JSON)`,
         children: (
           <QrPanel
             value={subJsonLink}
-            remark={`${client?.email || ""} — JSON`}
+            remark={`${client?.email || ''} — JSON`}
             showQr={false}
             showValue
           />
@@ -456,14 +456,14 @@ function ClientQrModalContent({
     }
     links.forEach((link, idx) => {
       const parts = parseLinkParts(link);
-      const meta = parts ? linkMetaText(parts) : "";
+      const meta = parts ? linkMetaText(parts) : '';
       const label: React.ReactNode = parts ? (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <LinkTags parts={parts} />
           {meta && <span style={{ opacity: 0.6, fontSize: 12 }}>({meta})</span>}
         </span>
       ) : (
-        `${t("pages.clients.link")} ${idx + 1}`
+        `${t('pages.clients.link')} ${idx + 1}`
       );
       out.push({
         key: `l${idx}`,
@@ -471,7 +471,7 @@ function ClientQrModalContent({
         children: (
           <QrPanel
             value={link}
-            remark={parts?.remark || `${client?.email || ""} #${idx + 1}`}
+            remark={parts?.remark || `${client?.email || ''} #${idx + 1}`}
             showQr={false}
             showValue
           />
@@ -481,9 +481,9 @@ function ClientQrModalContent({
     wgConfigs.forEach(({ inbound, endpoint, text }) => {
       const meta = formatTunnelConfigMeta(inbound, client?.email, wgConfigs.length, endpoint);
       const label = (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Tag color="cyan" style={{ margin: 0 }}>
-            {t("pages.clients.wireguardConfig")}
+            {t('pages.clients.wireguardConfig')}
           </Tag>
           {meta.label && <span style={{ opacity: 0.85, fontSize: 12 }}>{meta.label}</span>}
         </span>
@@ -505,9 +505,9 @@ function ClientQrModalContent({
     awgConfigs.forEach(({ inbound, endpoint, text }) => {
       const meta = formatTunnelConfigMeta(inbound, client?.email, awgConfigs.length, endpoint);
       const label = (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Tag color="purple" style={{ margin: 0 }}>
-            {t("pages.clients.amneziaWgConfig")}
+            {t('pages.clients.amneziaWgConfig')}
           </Tag>
           {meta.label && <span style={{ opacity: 0.85, fontSize: 12 }}>{meta.label}</span>}
         </span>
@@ -527,14 +527,14 @@ function ClientQrModalContent({
       });
     });
     tuicConfigs.forEach(({ endpoint, text }) => {
-      const name = client?.email || "tuic";
-      const multi = tuicConfigs.length > 1 ? endpoint : "";
+      const name = client?.email || 'tuic';
+      const multi = tuicConfigs.length > 1 ? endpoint : '';
       out.push({
         key: `tuic-config-${endpoint}`,
         label: (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <Tag color="orange" style={{ margin: 0 }}>
-              {t("pages.clients.tuicConfig")}
+              {t('pages.clients.tuicConfig')}
             </Tag>
             {multi && <span style={{ opacity: 0.85, fontSize: 12 }}>{multi}</span>}
           </span>
@@ -542,8 +542,8 @@ function ClientQrModalContent({
         children: (
           <QrPanel
             value={text}
-            remark={[name, multi].filter(Boolean).join(" - ")}
-            downloadName={`${[name, multi.replace(/[^\w.-]+/g, "_")].filter(Boolean).join("-")}.yaml`}
+            remark={[name, multi].filter(Boolean).join(' - ')}
+            downloadName={`${[name, multi.replace(/[^\w.-]+/g, '_')].filter(Boolean).join('-')}.yaml`}
             showQr={false}
             showValue
           />
@@ -581,7 +581,7 @@ function ClientQrModalContent({
   return (
     <Modal
       open={open}
-      title={client ? `Key — ${client.email}` : "Key"}
+      title={client ? `Key — ${client.email}` : 'Key'}
       footer={null}
       width={520}
       centered
@@ -589,20 +589,20 @@ function ClientQrModalContent({
     >
       <Spin aria-live="off" spinning={loading}>
         {!client?.subId && !loading && (
-          <div style={{ padding: 24, textAlign: "center", opacity: 0.6 }}>
-            {t("pages.clients.noSubId")}
+          <div style={{ padding: 24, textAlign: 'center', opacity: 0.6 }}>
+            {t('pages.clients.noSubId')}
           </div>
         )}
         {client?.subId && !hasAnything && !loading && (
-          <div style={{ padding: 24, textAlign: "center", opacity: 0.6 }}>
-            {t("pages.clients.noLinks")}
+          <div style={{ padding: 24, textAlign: 'center', opacity: 0.6 }}>
+            {t('pages.clients.noLinks')}
           </div>
         )}
         {hasAnything && (
           <Collapse
             activeKey={activeKey}
             onChange={(keys) =>
-              setActiveKey(typeof keys === "string" ? [keys] : (keys as string[]))
+              setActiveKey(typeof keys === 'string' ? [keys] : (keys as string[]))
             }
             items={items}
           />
