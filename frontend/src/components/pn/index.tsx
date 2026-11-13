@@ -213,10 +213,7 @@ export function PlanCard({
         <PnTag>{plan.durationDays === 0 ? 'No expiry' : String(plan.durationDays) + ' days'}</PnTag>
         <PnTag>IP {plan.limitIp || '∞'}</PnTag>
         <PnTag>HWID {plan.hwidLimit || '∞'}</PnTag>
-      </div>
-      <div className="r mu xs">
-        <span />
-        <span>{plan.clientsCount ?? 0} clients</span>
+        <PnTag>{plan.clientsCount ?? 0} clients</PnTag>
       </div>
     </article>
   );
