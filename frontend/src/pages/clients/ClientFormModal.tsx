@@ -1026,6 +1026,7 @@ export default function ClientFormModal({
                               ) : null}
                             </div>
                           </Col>
+                          </Row>
                         ) : (
                           <>
                         <Col xs={24} md={12}>
