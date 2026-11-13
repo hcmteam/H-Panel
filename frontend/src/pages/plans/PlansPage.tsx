@@ -676,7 +676,13 @@ function PlansPageContent() {
                             ) : result.links.length ? (
                               <div className="pn-plan-key-list">
                                 {result.links.map((link, index) => {
-                                  const protocol = link.split(':', 1)[0].toLowerCase();
+                                  const scheme = link.split(':', 1)[0].toLowerCase();
+                                  const protocol =
+                                    scheme === 'ss'
+                                      ? 'shadowsocks'
+                                      : scheme === 'hy2'
+                                        ? 'hysteria'
+                                        : scheme;
                                   const matches = inbounds.filter(
                                     (inbound) =>
                                       clientInboundIds.includes(inbound.id) &&
@@ -694,7 +700,7 @@ function PlansPageContent() {
                                     <div className="pn-plan-key-item" key={client.email + ':' + index}>
                                       <div className="pn-plan-key-meta">
                                         <b>{inboundName}</b>
-                                        <span>{protocol.toUpperCase()}</span>
+                                        <span>{(matches[0]?.protocol || scheme).toUpperCase()}</span>
                                       </div>
                                       <Typography.Text code copyable={{ text: link }}>
                                         {link}
