@@ -8,6 +8,7 @@ export type PlanModel = {
   durationDays: number;
   limitIp: number;
   hwidLimit: number;
+  inboundIds?: number[];
   trafficReset?: 'never' | 'hourly' | 'daily' | 'weekly' | 'monthly';
   startAfterFirstUse?: boolean;
   clientsCount?: number;
