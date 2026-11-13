@@ -653,13 +653,18 @@ function PlansPageContent() {
                     {linkedClients
                       .filter((client) => String(client.planId) === String(selectedPlan.id))
                       .sort((left, right) =>
-                        left.email === focusedKeyEmail ? -1 : right.email === focusedKeyEmail ? 1 : 0,
+                        left.email === focusedKeyEmail
+                          ? -1
+                          : right.email === focusedKeyEmail
+                            ? 1
+                            : 0,
                       )
                       .map((client) => {
                         const result = planKeys[client.email];
-                        const clientInboundIds = Array.isArray(client.inbounds) && client.inbounds.length
-                          ? client.inbounds
-                          : selectedPlan.inboundIds ?? [];
+                        const clientInboundIds =
+                          Array.isArray(client.inbounds) && client.inbounds.length
+                            ? client.inbounds
+                            : (selectedPlan.inboundIds ?? []);
                         return (
                           <section
                             className={
@@ -695,14 +700,22 @@ function PlansPageContent() {
                                       ? matches[0].remark || matches[0].tag || matches[0].protocol
                                       : matches.length > 1
                                         ? matches
-                                            .map((inbound) => inbound.remark || inbound.tag || inbound.protocol)
+                                            .map(
+                                              (inbound) =>
+                                                inbound.remark || inbound.tag || inbound.protocol,
+                                            )
                                             .join(', ')
                                         : label('menu.inbounds', 'Inbound');
                                   return (
-                                    <div className="pn-plan-key-item" key={client.email + ':' + index}>
+                                    <div
+                                      className="pn-plan-key-item"
+                                      key={client.email + ':' + index}
+                                    >
                                       <div className="pn-plan-key-meta">
                                         <b>{inboundName}</b>
-                                        <span>{(matches[0]?.protocol || scheme).toUpperCase()}</span>
+                                        <span>
+                                          {(matches[0]?.protocol || scheme).toUpperCase()}
+                                        </span>
                                       </div>
                                       <Typography.Text
                                         className="pn-plan-key-copy"
@@ -1122,3 +1135,4 @@ export default function PlansPage() {
     </Layout>
   );
 }
+

@@ -336,7 +336,11 @@ function ClientNameMarquee({ name }: { name: string }) {
   }, [name]);
 
   return (
-    <span ref={ref} className={`tag-name client-name-marquee${overflowing ? ' is-overflowing' : ''}`} title={name}>
+    <span
+      ref={ref}
+      className={`tag-name client-name-marquee${overflowing ? ' is-overflowing' : ''}`}
+      title={name}
+    >
       <span>{name}</span>
     </span>
   );
@@ -1998,9 +2002,14 @@ export default function ClientsPage() {
                             )}
                             {filteredClients.map((row) => {
                               const bucket = clientBucket(row);
-                              const online = !!row.enable && bucket !== 'depleted' && isOnline(row.email);
+                              const online =
+                                !!row.enable && bucket !== 'depleted' && isOnline(row.email);
                               const expired = row.expiryTime > 0 && row.expiryTime <= Date.now();
-                              const statusClass = online ? 'is-online' : expired ? 'is-expired' : 'is-offline';
+                              const statusClass = online
+                                ? 'is-online'
+                                : expired
+                                  ? 'is-expired'
+                                  : 'is-offline';
                               return (
                                 <div
                                   key={row.email}
@@ -2014,7 +2023,9 @@ export default function ClientsPage() {
                                     <span
                                       className={`client-status-dot ${statusClass}`}
                                       title={online ? 'Online' : expired ? 'Expired' : 'Offline'}
-                                      aria-label={online ? 'Online' : expired ? 'Expired' : 'Offline'}
+                                      aria-label={
+                                        online ? 'Online' : expired ? 'Expired' : 'Offline'
+                                      }
                                     />
                                     <ClientNameMarquee name={row.email} />
                                     {planNameByEmail.has(row.email) && (
@@ -2308,3 +2319,4 @@ function bucketChipLabel(b: string, t: (k: string) => string): string {
       return b;
   }
 }
+

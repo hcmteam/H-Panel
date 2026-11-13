@@ -2205,7 +2205,6 @@ body:has(.pn-responsive-modal)
   padding: 16px;
 }
 
-
 .pn-plan-rule-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2261,7 +2260,6 @@ body:has(.pn-responsive-modal)
     gap: 0;
   }
 }
-
 
 /* Keep plan cards scannable and make client/key rows easy to follow. */
 .pn-plan-card-name {
@@ -2355,9 +2353,7 @@ body:has(.pn-responsive-modal)
   }
 }
 
-
 /* Plan cards are the navigation target after removing the separate Open button. */
-
 
 /* A native full-card button keeps the card keyboard accessible without nested buttons. */
 .pn-plan-card {
@@ -2393,3 +2389,4 @@ body:has(.pn-responsive-modal)
   z-index: 3;
   pointer-events: auto;
 }
+

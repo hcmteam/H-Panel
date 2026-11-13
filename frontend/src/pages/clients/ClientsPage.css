@@ -646,7 +646,6 @@
   }
 }
 
-
 .clients-plan-panel {
   padding: 6px 8px;
   border: 1px solid var(--ant-color-border-secondary);
@@ -709,7 +708,6 @@
     font-size: 11px;
   }
 }
-
 
 /* Compact clients overview with a stable two-column card grid. */
 .clients-page-head {
@@ -815,7 +813,6 @@
   }
 }
 
-
 /* Make the requested client list layout/status treatment consistent at all widths. */
 .clients-page .client-cards {
   display: grid !important;
@@ -845,8 +842,12 @@
   animation: client-name-marquee-scroll 7s ease-in-out infinite alternate;
 }
 @keyframes client-name-marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-1 * var(--client-name-distance, 0px))); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-1 * var(--client-name-distance, 0px)));
+  }
 }
 .client-status-dot {
   display: inline-block;
@@ -868,7 +869,10 @@
   background: #555968;
 }
 @keyframes client-online-pulse {
-  50% { opacity: 0.35; transform: scale(0.78); }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.78);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .client-name-marquee.is-overflowing > span,
@@ -876,3 +880,4 @@
     animation: none;
   }
 }
+

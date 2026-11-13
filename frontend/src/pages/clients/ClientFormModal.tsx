@@ -1005,21 +1005,32 @@ export default function ClientFormModal({
                             <div className="client-plan-preset-summary">
                               <b>{t('menu.plans', 'Plan rules')}</b>
                               <span>
-                                {t('pages.clients.totalGB')}: {planPreset.totalGB > 0 ? `${planPreset.totalGB} GB` : t('pages.clients.unlimited', 'Unlimited')}
+                                {t('pages.clients.totalGB')}:{' '}
+                                {planPreset.totalGB > 0
+                                  ? `${planPreset.totalGB} GB`
+                                  : t('pages.clients.unlimited', 'Unlimited')}
                               </span>
                               <span>
-                                {t('pages.clients.expiryTime')}: {planPreset.durationDays > 0 ? `${planPreset.durationDays} days${planPreset.startAfterFirstUse ? ' · starts on first use' : ''}` : t('pages.clients.neverExpire', 'No expiry')}
+                                {t('pages.clients.expiryTime')}:{' '}
+                                {planPreset.durationDays > 0
+                                  ? `${planPreset.durationDays} days${planPreset.startAfterFirstUse ? ' · starts on first use' : ''}`
+                                  : t('pages.clients.neverExpire', 'No expiry')}
                               </span>
                               <span>
-                                {t('pages.clients.limitIp')}: {planPreset.limitIp || '∞'} · {t('pages.clients.limitHwid')}: {planPreset.hwidLimit || '∞'}
+                                {t('pages.clients.limitIp')}: {planPreset.limitIp || '∞'} ·{' '}
+                                {t('pages.clients.limitHwid')}: {planPreset.hwidLimit || '∞'}
                               </span>
                               <span>
-                                {t('pages.inbounds.periodicTrafficResetTitle')}: {planPreset.trafficReset || 'never'}
+                                {t('pages.inbounds.periodicTrafficResetTitle')}:{' '}
+                                {planPreset.trafficReset || 'never'}
                               </span>
                               {planPreset.inboundIds?.length ? (
                                 <span>
-                                  {t('pages.clients.attachedInbounds')}: {inboundOptions
-                                    .filter((option) => planPreset.inboundIds?.includes(Number(option.value)))
+                                  {t('pages.clients.attachedInbounds')}:{' '}
+                                  {inboundOptions
+                                    .filter((option) =>
+                                      planPreset.inboundIds?.includes(Number(option.value)),
+                                    )
                                     .map((option) => String(option.label))
                                     .join(', ')}
                                 </span>
@@ -1028,178 +1039,182 @@ export default function ClientFormModal({
                           </Col>
                         ) : (
                           <>
-                        <Col xs={24} md={12}>
-                          <FormField
-                            name="totalGB"
-                            label={t('pages.clients.totalGB')}
-                            tooltip={t('pages.clients.totalGBDesc')}
-                            transform={{ output: (v) => Number(v) || 0 }}
-                          >
-                            <InputNumber
-                              min={0}
-                              step={1}
-                              disabled={!!planPreset}
-                              style={{ width: '100%' }}
-                            />
-                          </FormField>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            htmlFor={`${uid}-limit-ip`}
-                            label={t('pages.clients.limitIp')}
-                            tooltip={t('pages.clients.limitIpDesc')}
-                          >
-                            <Tooltip title={limitIpNotice || undefined}>
-                              <span style={{ display: 'flex', width: '100%' }}>
-                                <Space.Compact style={{ display: 'flex', flex: 1 }}>
+                            <Col xs={24} md={12}>
+                              <FormField
+                                name="totalGB"
+                                label={t('pages.clients.totalGB')}
+                                tooltip={t('pages.clients.totalGBDesc')}
+                                transform={{ output: (v) => Number(v) || 0 }}
+                              >
+                                <InputNumber
+                                  min={0}
+                                  step={1}
+                                  disabled={!!planPreset}
+                                  style={{ width: '100%' }}
+                                />
+                              </FormField>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <Form.Item
+                                htmlFor={`${uid}-limit-ip`}
+                                label={t('pages.clients.limitIp')}
+                                tooltip={t('pages.clients.limitIpDesc')}
+                              >
+                                <Tooltip title={limitIpNotice || undefined}>
+                                  <span style={{ display: 'flex', width: '100%' }}>
+                                    <Space.Compact style={{ display: 'flex', flex: 1 }}>
+                                      <InputNumber
+                                        id={`${uid}-limit-ip`}
+                                        aria-describedby={`${uid}-limit-ip-hint`}
+                                        value={limitIp}
+                                        min={0}
+                                        disabled={limitIpDisabled || !!planPreset}
+                                        style={{
+                                          flex: 1,
+                                          ...(limitIpDisabled ? { pointerEvents: 'none' } : null),
+                                        }}
+                                        onChange={(v) =>
+                                          methods.setValue('limitIp', Number(v) || 0)
+                                        }
+                                      />
+                                      {isEdit && (
+                                        <Tooltip title={t('pages.clients.ipLog')}>
+                                          <Button
+                                            aria-label={t('pages.clients.ipLog')}
+                                            icon={<EyeOutlined aria-hidden />}
+                                            loading={ipsLoading}
+                                            onClick={openIpsModal}
+                                          >
+                                            {clientIps.length > 0 ? clientIps.length : ''}
+                                          </Button>
+                                        </Tooltip>
+                                      )}
+                                    </Space.Compact>
+                                  </span>
+                                </Tooltip>
+                                <span id={`${uid}-limit-ip-hint`} hidden>
+                                  {t('pages.clients.limitIpDesc')}
+                                </span>
+                              </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                              <Form.Item
+                                htmlFor={`${uid}-limit-hwid`}
+                                label={t('pages.clients.limitHwid')}
+                                tooltip={t('pages.clients.limitHwidDesc')}
+                              >
+                                <Space.Compact style={{ display: 'flex' }}>
                                   <InputNumber
-                                    id={`${uid}-limit-ip`}
-                                    aria-describedby={`${uid}-limit-ip-hint`}
-                                    value={limitIp}
+                                    id={`${uid}-limit-hwid`}
+                                    aria-describedby={`${uid}-limit-hwid-hint`}
+                                    value={limitHwid}
                                     min={0}
-                                    disabled={limitIpDisabled || !!planPreset}
-                                    style={{
-                                      flex: 1,
-                                      ...(limitIpDisabled ? { pointerEvents: 'none' } : null),
-                                    }}
-                                    onChange={(v) => methods.setValue('limitIp', Number(v) || 0)}
+                                    disabled={!!planPreset}
+                                    style={{ flex: 1 }}
+                                    onChange={(v) => methods.setValue('limitHwid', Number(v) || 0)}
                                   />
                                   {isEdit && (
-                                    <Tooltip title={t('pages.clients.ipLog')}>
+                                    <Tooltip title={t('pages.clients.hwidLog')}>
                                       <Button
-                                        aria-label={t('pages.clients.ipLog')}
+                                        aria-label={t('pages.clients.hwidLog')}
                                         icon={<EyeOutlined aria-hidden />}
-                                        loading={ipsLoading}
-                                        onClick={openIpsModal}
+                                        loading={hwidsLoading}
+                                        onClick={openHwidsModal}
                                       >
-                                        {clientIps.length > 0 ? clientIps.length : ''}
+                                        {clientHwids.length > 0 ? clientHwids.length : ''}
                                       </Button>
                                     </Tooltip>
                                   )}
                                 </Space.Compact>
-                              </span>
-                            </Tooltip>
-                            <span id={`${uid}-limit-ip-hint`} hidden>
-                              {t('pages.clients.limitIpDesc')}
-                            </span>
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} md={12}>
-                          <Form.Item
-                            htmlFor={`${uid}-limit-hwid`}
-                            label={t('pages.clients.limitHwid')}
-                            tooltip={t('pages.clients.limitHwidDesc')}
-                          >
-                            <Space.Compact style={{ display: 'flex' }}>
-                              <InputNumber
-                                id={`${uid}-limit-hwid`}
-                                aria-describedby={`${uid}-limit-hwid-hint`}
-                                value={limitHwid}
-                                min={0}
-                                disabled={!!planPreset}
-                                style={{ flex: 1 }}
-                                onChange={(v) => methods.setValue('limitHwid', Number(v) || 0)}
-                              />
-                              {isEdit && (
-                                <Tooltip title={t('pages.clients.hwidLog')}>
-                                  <Button
-                                    aria-label={t('pages.clients.hwidLog')}
-                                    icon={<EyeOutlined aria-hidden />}
-                                    loading={hwidsLoading}
-                                    onClick={openHwidsModal}
-                                  >
-                                    {clientHwids.length > 0 ? clientHwids.length : ''}
-                                  </Button>
-                                </Tooltip>
-                              )}
-                            </Space.Compact>
-                            <span id={`${uid}-limit-hwid-hint`} hidden>
-                              {t('pages.clients.limitHwidDesc')}
-                            </span>
-                          </Form.Item>
-                        </Col>
+                                <span id={`${uid}-limit-hwid-hint`} hidden>
+                                  {t('pages.clients.limitHwidDesc')}
+                                </span>
+                              </Form.Item>
+                            </Col>
                           </>
                         )}
                       </Row>
                       {!planPreset && (
                         <>
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          {delayedStart ? (
-                            <FormField
-                              name="delayedDays"
-                              label={t('pages.clients.expireDays')}
-                              transform={{ output: (v) => Number(v) || 0 }}
-                            >
-                              <InputNumber min={0} style={{ width: '100%' }} />
-                            </FormField>
-                          ) : (
-                            <Form.Item
-                              label={t('pages.clients.expiryTime')}
-                              htmlFor={`${uid}-expiry`}
-                            >
-                              <DateTimePicker
-                                id={`${uid}-expiry`}
-                                value={expiryDayjs}
-                                onChange={(d) =>
-                                  methods.setValue('expiryDate', d ? d.valueOf() : 0)
-                                }
-                              />
-                            </Form.Item>
-                          )}
-                        </Col>
-                        <Col xs={12} md={6}>
-                          <Form.Item
-                            label={t('pages.clients.delayedStart')}
-                            htmlFor={`${uid}-delayed-start`}
-                          >
-                            <Switch
-                              id={`${uid}-delayed-start`}
-                              checked={delayedStart}
-                              onChange={(v) => {
-                                methods.setValue('delayedStart', v);
-                                if (v) methods.setValue('expiryDate', 0);
-                                else methods.setValue('delayedDays', 0);
-                              }}
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
+                          <Row gutter={16}>
+                            <Col xs={24} md={12}>
+                              {delayedStart ? (
+                                <FormField
+                                  name="delayedDays"
+                                  label={t('pages.clients.expireDays')}
+                                  transform={{ output: (v) => Number(v) || 0 }}
+                                >
+                                  <InputNumber min={0} style={{ width: '100%' }} />
+                                </FormField>
+                              ) : (
+                                <Form.Item
+                                  label={t('pages.clients.expiryTime')}
+                                  htmlFor={`${uid}-expiry`}
+                                >
+                                  <DateTimePicker
+                                    id={`${uid}-expiry`}
+                                    value={expiryDayjs}
+                                    onChange={(d) =>
+                                      methods.setValue('expiryDate', d ? d.valueOf() : 0)
+                                    }
+                                  />
+                                </Form.Item>
+                              )}
+                            </Col>
+                            <Col xs={12} md={6}>
+                              <Form.Item
+                                label={t('pages.clients.delayedStart')}
+                                htmlFor={`${uid}-delayed-start`}
+                              >
+                                <Switch
+                                  id={`${uid}-delayed-start`}
+                                  checked={delayedStart}
+                                  onChange={(v) => {
+                                    methods.setValue('delayedStart', v);
+                                    if (v) methods.setValue('expiryDate', 0);
+                                    else methods.setValue('delayedDays', 0);
+                                  }}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
 
-                      <Row gutter={16}>
-                        <Col xs={24} md={12}>
-                          <FormField
-                            name="trafficReset"
-                            label={t('pages.inbounds.periodicTrafficResetTitle')}
-                          >
-                            <Select
-                              options={TRAFFIC_RESETS.map((r) => ({
-                                value: r,
-                                label: t(`pages.inbounds.periodicTrafficReset.${r}`),
-                              }))}
-                            />
-                          </FormField>
-                        </Col>
-                        {trafficReset === 'monthly' && (
-                          <Col xs={24} md={12}>
-                            <FormField
-                              name="trafficResetDay"
-                              label={t('pages.inbounds.periodicTrafficResetDay')}
-                              transform={{ output: (v) => Number(v) || 1 }}
-                            >
-                              <InputNumber min={1} max={31} style={{ width: '100%' }} />
-                            </FormField>
-                          </Col>
-                        )}
-                      </Row>
+                          <Row gutter={16}>
+                            <Col xs={24} md={12}>
+                              <FormField
+                                name="trafficReset"
+                                label={t('pages.inbounds.periodicTrafficResetTitle')}
+                              >
+                                <Select
+                                  options={TRAFFIC_RESETS.map((r) => ({
+                                    value: r,
+                                    label: t(`pages.inbounds.periodicTrafficReset.${r}`),
+                                  }))}
+                                />
+                              </FormField>
+                            </Col>
+                            {trafficReset === 'monthly' && (
+                              <Col xs={24} md={12}>
+                                <FormField
+                                  name="trafficResetDay"
+                                  label={t('pages.inbounds.periodicTrafficResetDay')}
+                                  transform={{ output: (v) => Number(v) || 1 }}
+                                >
+                                  <InputNumber min={1} max={31} style={{ width: '100%' }} />
+                                </FormField>
+                              </Col>
+                            )}
+                          </Row>
 
-                      <ClientRenewalFields
-                        active={open}
-                        delayedStart={delayedStart}
-                        expiryTime={delayedStart ? -86400000 * (delayedDays || 0) : expiryDate || 0}
-                        resetCount={client?.traffic?.resetCount || 0}
-                        setExpiry={(expiry) => methods.setValue('expiryDate', expiry)}
-                      />
+                          <ClientRenewalFields
+                            active={open}
+                            delayedStart={delayedStart}
+                            expiryTime={
+                              delayedStart ? -86400000 * (delayedDays || 0) : expiryDate || 0
+                            }
+                            resetCount={client?.traffic?.resetCount || 0}
+                            setExpiry={(expiry) => methods.setValue('expiryDate', expiry)}
+                          />
                         </>
                       )}
 
@@ -1309,8 +1324,6 @@ export default function ClientFormModal({
                             }}
                           />
                         </Form.Item>
-  
-  
                       )}
                       <Form.Item>
                         <Switch
@@ -1860,3 +1873,4 @@ export default function ClientFormModal({
     </>
   );
 }
+
