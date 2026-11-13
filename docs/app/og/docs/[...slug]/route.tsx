@@ -23,10 +23,18 @@ export async function GET(_req: Request, { params }: RouteContext<'/og/docs/[...
 }
 
 export function generateStaticParams() {
-  return source.getPages()
-    .filter((page) => i18n.languages.includes(page.locale as (typeof i18n.languages)[number]))
-    .map((page) => ({
+  const unsupportedLocalePrefixes = new Set(['fa', 'ru', 'zh']);
+
+  return source
+    .getPages()
+    .map((page) => ({ page, image: getPageImage(page) }))
+    .filter(
+      ({ page, image }) =>
+        i18n.languages.includes(page.locale as (typeof i18n.languages)[number]) &&
+        !unsupportedLocalePrefixes.has(image.segments[0]),
+    )
+    .map(({ page, image }) => ({
       lang: page.locale,
-      slug: getPageImage(page).segments,
+      slug: image.segments,
     }));
 }
