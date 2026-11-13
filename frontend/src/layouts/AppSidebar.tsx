@@ -367,7 +367,9 @@ export default function AppSidebar() {
       >
         <div className="sider-brand">
           <div className="brand-block">
-            <span className={`brand-text${railCollapsed ? ' is-collapsed' : ''}`}>{railCollapsed ? 'H' : 'H-Panel'}</span>
+            <span className={`brand-text${railCollapsed ? ' is-collapsed' : ''}`}>
+              {railCollapsed ? 'H' : 'H-Panel'}
+            </span>
           </div>
           {!railCollapsed && (
             <div className="brand-actions">
