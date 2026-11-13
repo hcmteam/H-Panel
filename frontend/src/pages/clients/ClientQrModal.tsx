@@ -611,5 +611,3 @@ function ClientQrModalContent({
     </Modal>
   );
 }
-
-
