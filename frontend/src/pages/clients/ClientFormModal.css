@@ -3,3 +3,36 @@
 .client-form-modal .ant-tabs-content > .ant-form-item:last-child {
   margin-bottom: 0;
 }
+
+/* Ant Design's current modal surface uses a separate container element. Keep
+   the whole client form on the active panel theme, including header/footer. */
+.ant-modal.client-form-modal > .ant-modal-container,
+.ant-modal-root:has(.client-form-modal) .ant-modal-container {
+  background: var(--surf, var(--ant-color-bg-elevated)) !important;
+  color: var(--tx, var(--ant-color-text)) !important;
+  border: 1px solid var(--ln, var(--ant-color-border)) !important;
+}
+
+.ant-modal.client-form-modal > .ant-modal-container .ant-modal-header,
+.ant-modal.client-form-modal > .ant-modal-container .ant-modal-body,
+.ant-modal.client-form-modal > .ant-modal-container .ant-modal-footer {
+  background: var(--surf, var(--ant-color-bg-elevated)) !important;
+  color: var(--tx, var(--ant-color-text)) !important;
+}
+
+.ant-modal.client-form-modal .ant-modal-title,
+.ant-modal.client-form-modal .ant-form-item-label > label,
+.ant-modal.client-form-modal .ant-typography {
+  color: var(--tx, var(--ant-color-text)) !important;
+}
+
+.ant-modal.client-form-modal .ant-input-number-disabled,
+.ant-modal.client-form-modal .ant-input-number-disabled .ant-input-number-input {
+  background: var(--s1, var(--ant-color-fill-tertiary)) !important;
+  color: var(--tx, var(--ant-color-text)) !important;
+  opacity: 1 !important;
+}
+
+.ant-modal.client-form-modal .ant-input-number-disabled {
+  border-color: var(--ln, var(--ant-color-border)) !important;
+}
