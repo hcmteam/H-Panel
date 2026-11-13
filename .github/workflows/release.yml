@@ -13,6 +13,7 @@ on:
       - "**.go"
       - "go.mod"
       - "go.sum"
+      - "internal/web/translation/**"
       - "**.sh"
       - "frontend/**"
       - "x-ui.service.debian"
