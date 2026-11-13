@@ -704,8 +704,11 @@ function PlansPageContent() {
                                         <b>{inboundName}</b>
                                         <span>{(matches[0]?.protocol || scheme).toUpperCase()}</span>
                                       </div>
-                                      <Typography.Text code copyable={{ text: link }}>
-                                        {link}
+                                      <Typography.Text
+                                        className="pn-plan-key-copy"
+                                        copyable={{ text: link }}
+                                      >
+                                        {label('plans.copyKey', 'Copy key')}
                                       </Typography.Text>
                                     </div>
                                   );
