@@ -2,6 +2,8 @@
 # Test stable-vs-dev installer release selection without network or installation.
 set -euo pipefail
 
+red='' yellow='' plain=''
+
 repo_root=$(cd "$(dirname "$0")/../.." && pwd)
 installer=${INSTALLER_UNDER_TEST:-"$repo_root/install.sh"}
 
