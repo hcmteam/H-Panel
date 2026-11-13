@@ -380,11 +380,13 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
   justify-content: center;
   padding: 0;
 }
+
 .brand-text {
   color: var(--ant-color-text, #f4f6ff);
   font-weight: 750;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
+
 .brand-text.is-collapsed {
   display: grid;
   width: 34px;
@@ -396,5 +398,7 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
   font-size: 17px;
   font-weight: 850;
   text-shadow: none;
-  box-shadow: 0 5px 14px rgba(34, 211, 238, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 5px 14px rgba(34, 211, 238, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
