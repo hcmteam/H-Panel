@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Layout } from 'antd';
 import AppSidebar from '@/layouts/AppSidebar';
 import {
@@ -235,6 +235,8 @@ function PlansPageContent() {
   const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [planKeys, setPlanKeys] = useState<Record<string, PlanKeyResult>>({});
+  const [focusedKeyEmail, setFocusedKeyEmail] = useState<string | null>(null);
+  const keyCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const [form] = Form.useForm<PlanDraft>();
   const [clientForm] = Form.useForm<ClientDraft>();
   useEffect(() => {
@@ -278,6 +280,17 @@ function PlansPageContent() {
       active = false;
     };
   }, [activeTab, linkedClients, planKeys, selectedPlan]);
+
+  useEffect(() => {
+    if (activeTab !== 'keys' || !focusedKeyEmail) return;
+    const frame = window.requestAnimationFrame(() => {
+      keyCardRefs.current[focusedKeyEmail]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab, focusedKeyEmail, planKeys]);
 
   const clients = useMemo(() => linkedClients.length, [linkedClients]);
   const createNewPlanClient = async (
@@ -572,18 +585,17 @@ function PlansPageContent() {
                       linkedClients
                         .filter((client) => String(client.planId) === String(selectedPlan.id))
                         .map((client) => (
-                          <div
-                            key={client.id}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              padding: '10px 14px',
-                              marginBottom: 8,
-                              borderRadius: 10,
-                              background: 'rgba(132, 148, 255, 0.08)',
-                            }}
-                          >
-                            <Typography.Text>{client.email}</Typography.Text>
+                          <div className="pn-plan-client-row" key={client.id}>
+                            <Button
+                              type="link"
+                              className="pn-plan-client-name"
+                              onClick={() => {
+                                setFocusedKeyEmail(client.email);
+                                setActiveTab('keys');
+                              }}
+                            >
+                              {client.email}
+                            </Button>
                             <Space size={8}>
                               {client.telegramId ? (
                                 <Typography.Text type="secondary">
@@ -640,24 +652,56 @@ function PlansPageContent() {
                   <div className="pn-plan-keys">
                     {linkedClients
                       .filter((client) => String(client.planId) === String(selectedPlan.id))
+                      .sort((left, right) =>
+                        left.email === focusedKeyEmail ? -1 : right.email === focusedKeyEmail ? 1 : 0,
+                      )
                       .map((client) => {
                         const result = planKeys[client.email];
+                        const clientInboundIds = Array.isArray(client.inbounds) ? client.inbounds : [];
                         return (
-                          <section className="pn-plan-key-card" key={client.id}>
+                          <section
+                            className={
+                              client.email === focusedKeyEmail
+                                ? 'pn-plan-key-card is-focused'
+                                : 'pn-plan-key-card'
+                            }
+                            key={client.id}
+                            ref={(node) => {
+                              keyCardRefs.current[client.email] = node;
+                            }}
+                          >
                             <b>{client.email}</b>
                             {!result ? (
                               <Spin size="small" />
                             ) : result.links.length ? (
                               <div className="pn-plan-key-list">
-                                {result.links.map((link, index) => (
-                                  <Typography.Text
-                                    code
-                                    copyable={{ text: link }}
-                                    key={client.email + ':' + index}
-                                  >
-                                    {link}
-                                  </Typography.Text>
-                                ))}
+                                {result.links.map((link, index) => {
+                                  const protocol = link.split(':', 1)[0].toLowerCase();
+                                  const matches = inbounds.filter(
+                                    (inbound) =>
+                                      clientInboundIds.includes(inbound.id) &&
+                                      inbound.protocol.toLowerCase() === protocol,
+                                  );
+                                  const inboundName =
+                                    matches.length === 1
+                                      ? matches[0].remark || matches[0].tag || matches[0].protocol
+                                      : matches.length > 1
+                                        ? matches
+                                            .map((inbound) => inbound.remark || inbound.tag || inbound.protocol)
+                                            .join(', ')
+                                        : label('menu.inbounds', 'Inbound');
+                                  return (
+                                    <div className="pn-plan-key-item" key={client.email + ':' + index}>
+                                      <div className="pn-plan-key-meta">
+                                        <b>{inboundName}</b>
+                                        <span>{protocol.toUpperCase()}</span>
+                                      </div>
+                                      <Typography.Text code copyable={{ text: link }}>
+                                        {link}
+                                      </Typography.Text>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             ) : (
                               <Typography.Text type="secondary">
