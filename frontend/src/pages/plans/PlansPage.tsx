@@ -157,7 +157,7 @@ function PlansPageContent() {
         if (active) {
           messageApi.error(error instanceof Error ? error.message : 'Could not load inbounds.');
         }
-      })
+      });
     return () => {
       active = false;
     };
