@@ -49,6 +49,7 @@ const EMPTY_PLAN: PlanDraft = {
   durationDays: 0,
   limitIp: 0,
   hwidLimit: 0,
+  inboundIds: [],
   trafficReset: 'never',
   startAfterFirstUse: false,
   applyToExistingClients: false,
@@ -86,7 +87,12 @@ const applyPlanToClient = async (
     // Hydrated ClientRecord.id is the database number; update expects the proxy UUID string.
     id: client.uuid,
     totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
-    expiryTime: plan.durationDays > 0 ? Date.now() + plan.durationDays * 24 * 60 * 60 * 1000 : 0,
+    expiryTime:
+      plan.durationDays > 0
+        ? plan.startAfterFirstUse
+          ? -plan.durationDays * 24 * 60 * 60 * 1000
+          : Date.now() + plan.durationDays * 24 * 60 * 60 * 1000
+        : 0,
     limitIp: Math.max(0, Number(plan.limitIp) || 0),
     limitHwid: Math.max(0, Number(plan.hwidLimit) || 0),
     trafficReset: plan.trafficReset || 'never',
@@ -103,7 +109,8 @@ const applyPlanToClient = async (
   }
 
   const currentInboundIds = Array.isArray(hydrated.obj.inboundIds) ? hydrated.obj.inboundIds : [];
-  const inboundsToAttach = inboundIds.filter((id) => !currentInboundIds.includes(id));
+  const configuredInboundIds = plan.inboundIds?.length ? plan.inboundIds : inboundIds;
+  const inboundsToAttach = configuredInboundIds.filter((id) => !currentInboundIds.includes(id));
   if (inboundsToAttach.length) {
     const attached = await HttpUtil.post(
       `/panel/api/clients/${encodeURIComponent(email)}/attach`,
@@ -226,16 +233,36 @@ function PlansPageContent() {
   ) => {
     if (!selectedPlan || meta.isEdit) return null;
     const email = meta.email.trim();
-    const created = await createClient(payload);
+    const sourceClient: Record<string, unknown> =
+      'client' in payload && payload.client && typeof payload.client === 'object'
+        ? payload.client
+        : payload;
+    const requestedInboundIds =
+      'inboundIds' in payload && Array.isArray(payload.inboundIds)
+        ? payload.inboundIds.filter((id): id is number => typeof id === 'number' && Number.isInteger(id))
+        : [];
+    const inboundIds = selectedPlan.inboundIds?.length
+      ? selectedPlan.inboundIds
+      : requestedInboundIds;
+    const durationDays = Math.max(0, Number(selectedPlan.durationDays) || 0);
+    const clientPayload = {
+      ...sourceClient,
+      totalGB: Math.round(Math.max(0, Number(selectedPlan.totalGB) || 0) * 1024 ** 3),
+      expiryTime:
+        durationDays > 0
+          ? selectedPlan.startAfterFirstUse
+            ? -durationDays * 24 * 60 * 60 * 1000
+            : Date.now() + durationDays * 24 * 60 * 60 * 1000
+          : 0,
+      limitIp: Math.max(0, Number(selectedPlan.limitIp) || 0),
+      limitHwid: Math.max(0, Number(selectedPlan.hwidLimit) || 0),
+      trafficReset: selectedPlan.trafficReset || 'never',
+    };
+    const created = await createClient({ client: clientPayload, inboundIds });
     if (!created?.success) return created;
-    const inboundIds =
-      'inboundIds' in payload && Array.isArray(payload.inboundIds) ? payload.inboundIds : [];
     try {
       await applyPlanToClient(selectedPlan, email, inboundIds);
-      const clientRecord: Record<string, unknown> =
-        'client' in payload && payload.client && typeof payload.client === 'object'
-          ? (payload.client as Record<string, unknown>)
-          : payload;
+      const clientRecord = clientPayload;
       const telegramId = String(clientRecord.tgId ?? '');
       const group = String(clientRecord.group ?? '');
       const linked = {
@@ -372,7 +399,11 @@ function PlansPageContent() {
     setDeleteOpen(false);
   };
   const openAddClient = () => {
-    clientForm.setFieldsValue({ email: '', planId: selectedPlan?.id ?? '', inbounds: [] });
+    clientForm.setFieldsValue({
+      email: '',
+      planId: selectedPlan?.id ?? '',
+      inbounds: selectedPlan?.inboundIds ?? [],
+    });
     setClientOpen(true);
   };
   const submitClient = async () => {
@@ -611,6 +642,7 @@ function PlansPageContent() {
           tgBotEnable={tgBotEnable}
           groups={[]}
           save={createNewPlanClient}
+          planPreset={selectedPlan ?? undefined}
           onOpenChange={setNewClientOpen}
         />
         <ResponsiveSheet
@@ -661,13 +693,21 @@ function PlansPageContent() {
                 }))}
               />
             </Form.Item>
+            <Form.Item name="inboundIds" label={label('pages.clients.attachedInbounds', 'Inbounds')}>
+              <Select
+                mode="multiple"
+                allowClear
+                options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
+                  value: inbound.id,
+                  label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
+                }))}
+              />
+            </Form.Item>
 
-            {editor === 'edit' && (
-              <Form.Item name="startAfterFirstUse" valuePropName="checked">
-                <Switch aria-label={label('plans.startAfterFirstUse', 'Start after first use')} />{' '}
-                <span>{label('plans.startAfterFirstUse', 'Start after first use')}</span>
-              </Form.Item>
-            )}
+            <Form.Item name="startAfterFirstUse" valuePropName="checked">
+              <Switch aria-label={label('plans.startAfterFirstUse', 'Start after first use')} />{' '}
+              <span>{label('plans.startAfterFirstUse', 'Start after first use')}</span>
+            </Form.Item>
             {editor === 'edit' && (
               <Form.Item name="applyToExistingClients" valuePropName="checked">
                 <Switch
@@ -872,6 +912,16 @@ function PlansPageContent() {
               options={['never', 'hourly', 'daily', 'weekly', 'monthly'].map((value) => ({
                 value,
                 label: label('plans.reset.' + value, value),
+              }))}
+            />
+          </Form.Item>
+          <Form.Item name="inboundIds" label={label('pages.clients.attachedInbounds', 'Inbounds')}>
+            <Select
+              mode="multiple"
+              allowClear
+              options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
+                value: inbound.id,
+                label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
               }))}
             />
           </Form.Item>
