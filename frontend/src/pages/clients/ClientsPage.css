@@ -880,3 +880,13 @@
     animation: none;
   }
 }
+
+/* Keep client cards readable at two columns on desktop and one on phones. */
+.clients-page .client-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 699px) {
+  .clients-page .client-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
