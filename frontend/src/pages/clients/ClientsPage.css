@@ -709,3 +709,92 @@
     font-size: 11px;
   }
 }
+
+
+/* Compact clients overview with a stable two-column card grid. */
+.clients-page-head {
+  align-items: center;
+  margin-bottom: 6px;
+}
+.clients-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.clients-page-head h1 {
+  font-size: 20px;
+  line-height: 1.1;
+}
+.clients-summary-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 999px;
+  background: var(--ant-color-fill-quaternary);
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.clients-page .clients-redesign .clients-add-button {
+  display: none;
+}
+.clients-page .card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+.clients-page .clients-toolbar-add-button.ant-btn {
+  display: inline-flex;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 9px;
+}
+.clients-page .clients-plan-panel {
+  padding: 5px 7px;
+}
+.clients-page .plans-section-head {
+  margin: 2px 0 4px;
+}
+.clients-page .plans-scroller .plan-card-bottom strong::after {
+  content: ' clients';
+  margin-left: 3px;
+  color: var(--ant-color-text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+}
+.clients-page .client-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+@media (max-width: 600px) {
+  .clients-page-head {
+    gap: 8px;
+  }
+  .clients-page-head h1 {
+    font-size: 20px;
+  }
+  .clients-summary-badge {
+    min-height: 20px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+  .clients-page .client-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .clients-page .client-card {
+    padding: 6px 7px;
+    border-radius: 12px;
+  }
+}
