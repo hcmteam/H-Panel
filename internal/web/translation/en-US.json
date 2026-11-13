@@ -322,6 +322,8 @@
       "port": "Port",
       "portMap": "Port Mapping",
       "traffic": "Traffic",
+      "unlimited": "Unlimited",
+      "neverExpire": "Never expires",
       "speed": "Speed",
       "expireDate": "Duration",
       "createdAt": "Created",
