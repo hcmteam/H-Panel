@@ -2844,7 +2844,7 @@ body:has(.pn-responsive-modal)
 /* Give every clickable control a clear raised hover and pressed response. */
 #app button:not(.pn-plan-card-hit-area):not(:disabled),
 #app .ant-btn:not(:disabled),
-#app [role="button"]:not([aria-disabled="true"]),
+#app [role='button']:not([aria-disabled='true']),
 #app .ant-tabs-tab {
   transition:
     transform 140ms ease,
@@ -2854,7 +2854,7 @@ body:has(.pn-responsive-modal)
 @media (hover: hover) {
   #app button:not(.pn-plan-card-hit-area):not(:disabled):hover,
   #app .ant-btn:not(:disabled):hover,
-  #app [role="button"]:not([aria-disabled="true"]):hover,
+  #app [role='button']:not([aria-disabled='true']):hover,
   #app .ant-tabs-tab:hover {
     transform: translateY(-2px);
     filter: brightness(1.12) saturate(1.05);
@@ -2863,7 +2863,7 @@ body:has(.pn-responsive-modal)
 }
 #app button:not(.pn-plan-card-hit-area):not(:disabled):active,
 #app .ant-btn:not(:disabled):active,
-#app [role="button"]:not([aria-disabled="true"]):active,
+#app [role='button']:not([aria-disabled='true']):active,
 #app .ant-tabs-tab:active {
   transform: translateY(1px) scale(0.97) !important;
   filter: brightness(1.18) saturate(1.1) !important;
