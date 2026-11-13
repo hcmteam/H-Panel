@@ -2877,7 +2877,7 @@ body:has(.pn-responsive-modal)
 @media (prefers-reduced-motion: reduce) {
   #app button,
   #app .ant-btn,
-  #app [role="button"],
+  #app [role='button'],
   #app .ant-tabs-tab {
     transition: none !important;
   }
