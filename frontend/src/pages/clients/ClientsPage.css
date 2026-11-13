@@ -766,12 +766,28 @@
 .clients-page .plans-section-head {
   margin: 2px 0 4px;
 }
-.clients-page .plans-scroller .plan-card-bottom strong::after {
-  content: ' clients';
-  margin-left: 3px;
+.clients-page .plan-card-bottom {
+  align-items: center;
+}
+.clients-page .plan-card-limits {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clients-page .plan-card-client-count {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: 3px;
   color: var(--ant-color-text-secondary);
-  font-size: 10px;
-  font-weight: 500;
+}
+.clients-page .plan-card-client-count strong {
+  color: var(--ant-color-text);
+  font-size: 11px;
+}
+.clients-page .plan-card-client-count small {
+  font-size: 9px;
 }
 .clients-page .client-cards {
   grid-template-columns: repeat(2, minmax(0, 1fr));
