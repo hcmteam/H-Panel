@@ -24,6 +24,8 @@ import { SlimInboundListSchema } from '@/schemas/inbound';
 import { HttpUtil, RandomUtil } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
 import { selectTagRender } from '@/components/form';
+import ClientFormModal from '@/pages/clients/ClientFormModal';
+import { useClients } from '@/hooks/useClients';
 
 type PlanDraft = Omit<PlanModel, 'id' | 'clientsCount'> & { applyToExistingClients?: boolean };
 type ClientDraft = {
@@ -117,6 +119,7 @@ const applyPlanToClient = async (
 function PlansPageContent() {
   const { t } = useTranslation();
   const label = (key: string, fallback: string) => t(key, { defaultValue: fallback });
+  const { inbounds: clientInbounds, tgBotEnable } = useClients();
 
   const [plans, setPlans] = useState<PlanModel[]>(() => {
     const stored = readStored<PlanModel[]>(PLAN_STORAGE_KEY, []);
@@ -200,12 +203,76 @@ function PlansPageContent() {
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
+  const [newClientOpen, setNewClientOpen] = useState(false);
   const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [form] = Form.useForm<PlanDraft>();
   const [clientForm] = Form.useForm<ClientDraft>();
   const [messageApi, messageContextHolder] = message.useMessage();
   const clients = useMemo(() => linkedClients.length, [linkedClients]);
+  const createNewPlanClient = async (
+    payload: Record<string, unknown> | { client: Record<string, unknown>; inboundIds: number[] },
+    meta:
+      | { isEdit: false; email: string; externalLinks: unknown[] }
+      | {
+          isEdit: true;
+          email: string;
+          attach: number[];
+          detach: number[];
+          externalLinks: unknown[];
+        },
+  ) => {
+    if (!selectedPlan || meta.isEdit) return null;
+    const email = meta.email.trim();
+    const created = await HttpUtil.post('/panel/api/clients/add', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!created?.success) return created;
+    const inboundIds =
+      'inboundIds' in payload && Array.isArray(payload.inboundIds) ? payload.inboundIds : [];
+    try {
+      await applyPlanToClient(selectedPlan, email, inboundIds);
+      const clientRecord =
+        'client' in payload && payload.client && typeof payload.client === 'object'
+          ? payload.client
+          : payload;
+      const telegramId = String(clientRecord.tgId ?? '');
+      const group = String(clientRecord.group ?? '');
+      const linked = {
+        email,
+        planId: selectedPlan.id,
+        telegramId,
+        group,
+        inbounds: inboundIds,
+        id: RandomUtil.randomUUID(),
+      };
+      setLinkedClients((current) => [...current, linked]);
+      setPlans((current) =>
+        current.map((item) =>
+          String(item.id) === String(selectedPlan.id)
+            ? { ...item, clientsCount: (item.clientsCount ?? 0) + 1 }
+            : item,
+        ),
+      );
+      setSelectedPlan((current) =>
+        current && String(current.id) === String(selectedPlan.id)
+          ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 }
+          : current,
+      );
+      messageApi.success(label('plans.newClientAdded', 'New client created and added to this plan.'));
+    } catch (error) {
+      messageApi.warning(
+        error instanceof Error
+          ? label(
+              'plans.newClientCreatedNotAssigned',
+              'Client was created, but the plan could not be applied: {{error}}',
+            ).replace('{{error}}', error.message)
+          : label('plans.newClientCreatedNotAssignedShort', 'Client created; plan was not applied.'),
+      );
+    }
+    return created;
+  };
+
   const removeClientFromPlan = (client: ClientDraft & { id: string }) => {
     if (!selectedPlan) return;
     setLinkedClients((current) => current.filter((item) => item.id !== client.id));
@@ -380,8 +447,11 @@ function PlansPageContent() {
             <Button onClick={() => editPlan(selectedPlan)}>
               {label('common.edit', 'Edit plan')}
             </Button>
-            <Button type="primary" onClick={openAddClient}>
-              {label('plans.addClient', 'Add client')}
+            <Button onClick={openAddClient}>
+              {label('plans.addExistingClient', 'Add existing')}
+            </Button>
+            <Button type="primary" onClick={() => setNewClientOpen(true)}>
+              {label('plans.createClient', 'New client')}
             </Button>
           </Space>
         </header>
@@ -464,9 +534,14 @@ function PlansPageContent() {
                         description={label('plans.noClients', 'No clients use this plan yet')}
                       />
                     )}
-                    <Button type="primary" onClick={openAddClient}>
-                      {label('plans.addClient', 'Add client')}
-                    </Button>
+                    <Space wrap>
+                      <Button onClick={openAddClient}>
+                        {label('plans.addExistingClient', 'Add existing')}
+                      </Button>
+                      <Button type="primary" onClick={() => setNewClientOpen(true)}>
+                        {label('plans.createClient', 'New client')}
+                      </Button>
+                    </Space>
                   </div>
                 ),
               },
@@ -517,6 +592,16 @@ function PlansPageContent() {
             {label('plans.delete', 'Delete plan')}
           </Button>
         </div>
+        <ClientFormModal
+          open={newClientOpen}
+          mode="add"
+          client={null}
+          inbounds={clientInbounds}
+          tgBotEnable={tgBotEnable}
+          groups={[]}
+          save={createNewPlanClient}
+          onOpenChange={setNewClientOpen}
+        />
         <ResponsiveSheet
           open={editor !== null}
           title={
