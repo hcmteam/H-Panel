@@ -9,6 +9,7 @@ import {
   InputNumber,
   Select,
   Space,
+  Spin,
   Switch,
   Tabs,
   Typography,
@@ -35,6 +36,7 @@ type ClientDraft = {
   group?: string;
   inbounds?: number[];
 };
+type PlanKeyResult = { links: string[]; error?: string };
 type PlanInbound = {
   id: number;
   protocol: string;
@@ -232,8 +234,51 @@ function PlansPageContent() {
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [clientSubmitting, setClientSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
+  const [planKeys, setPlanKeys] = useState<Record<string, PlanKeyResult>>({});
   const [form] = Form.useForm<PlanDraft>();
   const [clientForm] = Form.useForm<ClientDraft>();
+  useEffect(() => {
+    if (!selectedPlan || activeTab !== 'keys') return;
+    const assigned = linkedClients.filter(
+      (client) => String(client.planId) === String(selectedPlan.id),
+    );
+    const pending = assigned.filter((client) => !(client.email in planKeys));
+    if (!pending.length) return;
+
+    let active = true;
+    void Promise.all(
+      pending.map(async (client) => {
+        try {
+          const response = await HttpUtil.get(
+            `/panel/api/clients/links/${encodeURIComponent(client.email)}`,
+            undefined,
+            { silent: true },
+          );
+          if (!response?.success) {
+            throw new Error(response?.msg || 'Could not load client keys.');
+          }
+          const links = Array.isArray(response.obj)
+            ? response.obj.filter((link): link is string => typeof link === 'string')
+            : [];
+          return [client.email, { links }] as const;
+        } catch (error) {
+          return [
+            client.email,
+            {
+              links: [],
+              error: error instanceof Error ? error.message : 'Could not load client keys.',
+            },
+          ] as const;
+        }
+      }),
+    ).then((results) => {
+      if (active) setPlanKeys((current) => ({ ...current, ...Object.fromEntries(results) }));
+    });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, linkedClients, planKeys, selectedPlan]);
+
   const clients = useMemo(() => linkedClients.length, [linkedClients]);
   const createNewPlanClient = async (
     payload: Record<string, unknown> | { client: Record<string, unknown>; inboundIds: number[] },
@@ -609,17 +654,47 @@ function PlansPageContent() {
                 key: 'keys',
                 label: label('plans.keys', 'Keys'),
                 children: (
-                  <div className="pn-empty-state">
-                    <Empty
-                      description={label(
-                        'plans.keysPending',
-                        'Subscription keys appear after clients are assigned',
-                      )}
-                    />
-                    <Space>
-                      <Button disabled>{label('plans.copyAllKeys', 'Copy all keys')}</Button>
-                      <Button disabled>{label('common.export', 'Export')}</Button>
-                    </Space>
+                  <div className="pn-plan-keys">
+                    {linkedClients
+                      .filter((client) => String(client.planId) === String(selectedPlan.id))
+                      .map((client) => {
+                        const result = planKeys[client.email];
+                        return (
+                          <section className="pn-plan-key-card" key={client.id}>
+                            <b>{client.email}</b>
+                            {!result ? (
+                              <Spin size="small" />
+                            ) : result.links.length ? (
+                              <div className="pn-plan-key-list">
+                                {result.links.map((link, index) => (
+                                  <Typography.Text
+                                    code
+                                    copyable={{ text: link }}
+                                    key={client.email + ':' + index}
+                                  >
+                                    {link}
+                                  </Typography.Text>
+                                ))}
+                              </div>
+                            ) : (
+                              <Typography.Text type="secondary">
+                                {result.error ||
+                                  label('plans.noClientKeys', 'No keys available for this client.')}
+                              </Typography.Text>
+                            )}
+                          </section>
+                        );
+                      })}
+                    {!linkedClients.some(
+                      (client) => String(client.planId) === String(selectedPlan.id),
+                    ) && (
+                      <Empty
+                        description={label(
+                          'plans.keysPending',
+                          'Subscription keys appear after clients are assigned',
+                        )}
+                      />
+                    )}
                   </div>
                 ),
               },
@@ -627,6 +702,35 @@ function PlansPageContent() {
           />
           <div className="pn-plan-rule-summary">
             <b>{label('plans.rules', 'Plan rules')}</b>
+            <div className="kv">
+              <span>{label('plans.traffic', 'Traffic')}</span>
+              <span>
+                {selectedPlan.totalGB > 0
+                  ? selectedPlan.totalGB + ' GB'
+                  : label('plans.unlimited', 'Unlimited')}
+              </span>
+            </div>
+            <div className="kv">
+              <span>{label('plans.duration', 'Duration')}</span>
+              <span>
+                {selectedPlan.durationDays > 0
+                  ? selectedPlan.durationDays + ' days'
+                  : label('plans.noExpiry', 'No expiry')}
+              </span>
+            </div>
+            <div className="kv">
+              <span>{label('pages.clients.attachedInbounds', 'Inbounds')}</span>
+              <span>
+                {selectedPlan.inboundIds?.length
+                  ? selectedPlan.inboundIds
+                      .map((id) => {
+                        const inbound = inbounds.find((item) => item.id === id);
+                        return inbound?.remark || inbound?.tag || inbound?.protocol || String(id);
+                      })
+                      .join(', ')
+                  : label('plans.selectPerClient', 'Selected for each client')}
+              </span>
+            </div>
             <div className="kv">
               <span>{label('plans.ipLimit', 'IP limit')}</span>
               <span>{selectedPlan.limitIp || '∞'}</span>
