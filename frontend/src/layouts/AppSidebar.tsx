@@ -9,7 +9,6 @@ import {
   CloseOutlined,
   CloudServerOutlined,
   CodeOutlined,
-  DatabaseOutlined,
   DiscordOutlined,
   GithubOutlined,
   HeartOutlined,
@@ -26,6 +25,7 @@ import {
   SettingOutlined,
   SunOutlined,
   TelegramFilled,
+  ToolOutlined,
 } from '@ant-design/icons';
 
 import { HttpUtil } from '@/utils';
