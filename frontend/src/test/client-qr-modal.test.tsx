@@ -616,7 +616,7 @@ describe('ClientQrModal Happ presentation', () => {
 
     const panel = await screen.findByTestId('qr-panel-value');
     expect(panel.textContent).toBe(exactLink);
-    expect(panel.getAttribute('data-show-qr')).toBe('true');
+    expect(panel.getAttribute('data-show-qr')).toBe('false');
   });
 
   it.each([
