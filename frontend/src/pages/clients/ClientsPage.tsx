@@ -1398,19 +1398,12 @@ export default function ClientsPage() {
                   <Col span={24}>
                     <section className="clients-redesign">
                       <header className="clients-page-head">
-                        <div>
+                        <div className="clients-heading">
                           <h1>Clients</h1>
-                          <p>
+                          <span className="clients-summary-badge">
                             {summary.total} clients · {summary.onlineCount} online
-                          </p>
+                          </span>
                         </div>
-                        <Button
-                          className="clients-add-button"
-                          type="primary"
-                          icon={<PlusOutlined aria-hidden />}
-                          onClick={onAdd}
-                          aria-label={t('pages.clients.addClients')}
-                        />
                       </header>
                       <div className="plans-section-head">
                         <span>PLANS</span>
@@ -1623,13 +1616,14 @@ export default function ClientsPage() {
                         <div className="card-toolbar">
                           {selectedRowKeys.length === 0 ? (
                             <Button
+                              className="clients-toolbar-add-button"
+                              size="small"
                               type="primary"
                               icon={<PlusOutlined aria-hidden />}
                               onClick={onAdd}
                               aria-label={t('pages.clients.addClients')}
-                            >
-                              {!isMobile && t('pages.clients.addClients')}
-                            </Button>
+                              title={t('pages.clients.addClients')}
+                            />
                           ) : (
                             <Tag
                               color="blue"
