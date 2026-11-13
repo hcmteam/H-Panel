@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentType, CSSProperties } from "react";
-import { useLocation, useNavigate } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Drawer, Layout, Menu, Tooltip } from "antd";
-import type { MenuProps } from "antd";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentType, CSSProperties } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Drawer, Layout, Menu, Tooltip } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   ApartmentOutlined,
   CloseOutlined,
@@ -26,27 +26,27 @@ import {
   SunOutlined,
   TelegramFilled,
   ToolOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
-import { HttpUtil } from "@/utils";
-import { formatPanelVersion } from "@/lib/panel-version";
-import { pauseAnimationsUntilLeave, useTheme } from "@/hooks/useTheme";
-import { useAllSettings } from "@/api/queries/useAllSettings";
-import { useCommandPalette } from "@/components/command-palette/useCommandPalette";
-import { PANEL_ROUTES } from "@/routes/panelRoutes";
-import "./AppSidebar.css";
+import { HttpUtil } from '@/utils';
+import { formatPanelVersion } from '@/lib/panel-version';
+import { pauseAnimationsUntilLeave, useTheme } from '@/hooks/useTheme';
+import { useAllSettings } from '@/api/queries/useAllSettings';
+import { useCommandPalette } from '@/components/command-palette/useCommandPalette';
+import { PANEL_ROUTES } from '@/routes/panelRoutes';
+import './AppSidebar.css';
 
-const DONATE_URL = "https://donate.sanaei.dev/";
+const DONATE_URL = 'https://donate.sanaei.dev/';
 // The palette listens for Ctrl as well as Cmd, so the chip must not show a
 // Mac glyph to the Linux and Windows operators who are most of this panel's.
-const SHORTCUT_MODIFIER = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? "⌘" : "Ctrl";
-const DOCS_URL = "https://docs.sanaei.dev/";
-const REPO_URL = "https://github.com/MHSanaei/3x-ui";
-const LOGOUT_KEY = "__logout__";
-const SETTINGS_GROUP_PATHS = ["/nodes", "/hosts", "/outbound", "/routing"];
+const SHORTCUT_MODIFIER = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? '⌘' : 'Ctrl';
+const DOCS_URL = 'https://docs.sanaei.dev/';
+const REPO_URL = 'https://github.com/MHSanaei/3x-ui';
+const LOGOUT_KEY = '__logout__';
+const SETTINGS_GROUP_PATHS = ['/nodes', '/hosts', '/outbound', '/routing'];
 const RAIL_WIDTH = 72;
 const SIDER_WIDTH = 220;
-const SIDEBAR_PINNED_KEY = "sidebar-pinned";
+const SIDEBAR_PINNED_KEY = 'sidebar-pinned';
 
 let hoveredAcrossRemounts = false;
 
@@ -134,7 +134,7 @@ function ThemeCycleButton({
 
 function readSidebarPinned() {
   try {
-    return localStorage.getItem(SIDEBAR_PINNED_KEY) === "true";
+    return localStorage.getItem(SIDEBAR_PINNED_KEY) === 'true';
   } catch {
     return false;
   }
@@ -161,7 +161,7 @@ export default function AppSidebar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const railCollapsed = !hovered && !pinned;
   const railStyle = useMemo(
-    () => ({ "--sider-rail": `${pinned ? SIDER_WIDTH : RAIL_WIDTH}px` }) as CSSProperties,
+    () => ({ '--sider-rail': `${pinned ? SIDER_WIDTH : RAIL_WIDTH}px` }) as CSSProperties,
     [pinned],
   );
   const rootRef = useRef<HTMLDivElement>(null);
@@ -180,13 +180,13 @@ export default function AppSidebar() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const el = rootRef.current;
-      if (el) updateHovered(el.matches(":hover"));
+      if (el) updateHovered(el.matches(':hover'));
     }, 150);
     return () => window.clearTimeout(timer);
   }, [updateHovered]);
 
-  const currentTheme: "light" | "dark" = isDark ? "dark" : "light";
-  const panelVersion = window.X_UI_CUR_VER || "";
+  const currentTheme: 'light' | 'dark' = isDark ? 'dark' : 'light';
+  const panelVersion = window.X_UI_CUR_VER || '';
 
   const tabs = useMemo<{ key: string; icon: ComponentType; title: string }[]>(
     () => [
@@ -195,7 +195,7 @@ export default function AppSidebar() {
         icon: route.icon,
         title: t(route.titleKey),
       })),
-      { key: LOGOUT_KEY, icon: LogoutOutlined, title: t("logout") },
+      { key: LOGOUT_KEY, icon: LogoutOutlined, title: t('logout') },
     ],
     [t],
   );
@@ -205,62 +205,62 @@ export default function AppSidebar() {
       ...tabs.filter(
         (tab) =>
           tab.key !== LOGOUT_KEY &&
-          tab.key !== "/settings" &&
-          tab.key !== "/xray" &&
+          tab.key !== '/settings' &&
+          tab.key !== '/xray' &&
           !SETTINGS_GROUP_PATHS.includes(tab.key) &&
-          tab.key !== "/api-docs",
+          tab.key !== '/api-docs',
       ),
-      { key: "/settings-menu", icon: SettingOutlined, title: "Settings Menu" },
+      { key: '/settings-menu', icon: SettingOutlined, title: 'Settings Menu' },
     ],
     [tabs],
   );
   const utilItems = useMemo(() => tabs.filter((tab) => tab.key === LOGOUT_KEY), [tabs]);
 
-  const settingsChildren = useMemo<NonNullable<MenuProps["items"]>>(() => {
-    const children: NonNullable<MenuProps["items"]> = [
+  const settingsChildren = useMemo<NonNullable<MenuProps['items']>>(() => {
+    const children: NonNullable<MenuProps['items']> = [
       {
-        key: "/settings#general",
+        key: '/settings#general',
         icon: <SettingOutlined aria-hidden />,
-        label: t("pages.settings.panelSettings"),
+        label: t('pages.settings.panelSettings'),
       },
       {
-        key: "/settings#security",
+        key: '/settings#security',
         icon: <SafetyOutlined aria-hidden />,
-        label: t("pages.settings.securitySettings"),
+        label: t('pages.settings.securitySettings'),
       },
       {
-        key: "/settings#telegram",
+        key: '/settings#telegram',
         icon: <TelegramFilled aria-hidden />,
-        label: t("pages.settings.TGBotSettings"),
+        label: t('pages.settings.TGBotSettings'),
       },
       {
-        key: "/settings#email",
+        key: '/settings#email',
         icon: <MailOutlined aria-hidden />,
-        label: t("pages.settings.emailSettings"),
+        label: t('pages.settings.emailSettings'),
       },
       {
-        key: "/settings#discord",
+        key: '/settings#discord',
         icon: <DiscordOutlined aria-hidden />,
-        label: t("pages.settings.discordSettings"),
+        label: t('pages.settings.discordSettings'),
       },
       {
-        key: "/settings#subscription",
+        key: '/settings#subscription',
         icon: <CloudServerOutlined aria-hidden />,
-        label: t("pages.settings.subSettings"),
+        label: t('pages.settings.subSettings'),
       },
     ];
     if (showSubFormats) {
       children.push({
-        key: "/settings#subscription-formats",
+        key: '/settings#subscription-formats',
         icon: <CodeOutlined aria-hidden />,
-        label: t("menu.subFormats"),
+        label: t('menu.subFormats'),
       });
     }
     if (showSubBalancers) {
       children.push({
-        key: "/settings#subscription-balancers",
+        key: '/settings#subscription-balancers',
         icon: <ApartmentOutlined aria-hidden />,
-        label: t("pages.settings.subBalancers.menu"),
+        label: t('pages.settings.subBalancers.menu'),
       });
     }
     children.push(
@@ -269,35 +269,35 @@ export default function AppSidebar() {
         return { key: route.path, icon: <Icon aria-hidden />, label: t(route.titleKey) };
       }),
       {
-        key: "/xray#basic",
+        key: '/xray#basic',
         icon: <ToolOutlined aria-hidden />,
-        label: t("menu.xray"),
+        label: t('menu.xray'),
       },
       {
-        key: "/api-docs",
+        key: '/api-docs',
         icon: <CodeOutlined aria-hidden />,
-        label: t("menu.apiDocs"),
+        label: t('menu.apiDocs'),
       },
     );
     return children;
   }, [t, showSubFormats, showSubBalancers]);
 
-  const settingsActive = pathname === "/settings";
-  const xrayActive = pathname === "/xray";
+  const settingsActive = pathname === '/settings';
+  const xrayActive = pathname === '/xray';
   const selectedKey = settingsActive
-    ? `/settings${hash || "#general"}`
+    ? `/settings${hash || '#general'}`
     : xrayActive
-      ? `/xray${hash || "#basic"}`
-      : pathname === ""
-        ? "/"
+      ? `/xray${hash || '#basic'}`
+      : pathname === ''
+        ? '/'
         : pathname;
 
   const openSubmenu =
     settingsActive ||
     xrayActive ||
     SETTINGS_GROUP_PATHS.includes(pathname) ||
-    pathname === "/api-docs"
-      ? "/settings-menu"
+    pathname === '/api-docs'
+      ? '/settings-menu'
       : null;
   const [openKeys, setOpenKeys] = useState<string[]>(() => (openSubmenu ? [openSubmenu] : []));
   if (openSubmenu && !openKeys.includes(openSubmenu)) {
@@ -305,10 +305,10 @@ export default function AppSidebar() {
   }
 
   const toMenuItems = useCallback(
-    (items: typeof tabs): MenuProps["items"] =>
+    (items: typeof tabs): MenuProps['items'] =>
       items.map((tab) => {
         const Icon = tab.icon;
-        if (tab.key === "/settings-menu") {
+        if (tab.key === '/settings-menu') {
           return {
             key: tab.key,
             icon: <Icon aria-hidden />,
@@ -316,7 +316,7 @@ export default function AppSidebar() {
             children: settingsChildren,
           };
         }
-        return { key: tab.key, icon: <Icon aria-hidden />, label: tab.title, title: "" };
+        return { key: tab.key, icon: <Icon aria-hidden />, label: tab.title, title: '' };
       }),
     [settingsChildren],
   );
@@ -324,8 +324,8 @@ export default function AppSidebar() {
   const openLink = useCallback(
     async (key: string) => {
       if (key === LOGOUT_KEY) {
-        await HttpUtil.post("/logout");
-        window.location.href = window.X_UI_BASE_PATH || "/";
+        await HttpUtil.post('/logout');
+        window.location.href = window.X_UI_BASE_PATH || '/';
         return;
       }
       navigate(key);
@@ -333,7 +333,7 @@ export default function AppSidebar() {
     [navigate],
   );
 
-  const onMenuClick = useCallback<NonNullable<MenuProps["onClick"]>>(
+  const onMenuClick = useCallback<NonNullable<MenuProps['onClick']>>(
     ({ key }) => {
       openLink(String(key));
     },
@@ -359,7 +359,7 @@ export default function AppSidebar() {
   return (
     <div
       ref={rootRef}
-      className={`ant-sidebar${pinned ? " sidebar-pinned" : ""}`}
+      className={`ant-sidebar${pinned ? ' sidebar-pinned' : ''}`}
       style={railStyle}
       onMouseEnter={() => updateHovered(true)}
       onMouseLeave={() => updateHovered(false)}
@@ -372,8 +372,8 @@ export default function AppSidebar() {
       >
         <div className="sider-brand">
           <div className="brand-block">
-            <span className={`brand-text${railCollapsed ? " is-collapsed" : ""}`}>
-              {railCollapsed ? "H" : "H-Panel"}
+            <span className={`brand-text${railCollapsed ? ' is-collapsed' : ''}`}>
+              {railCollapsed ? 'H' : 'H-Panel'}
             </span>
           </div>
           {!railCollapsed && (
@@ -381,9 +381,9 @@ export default function AppSidebar() {
               <button
                 type="button"
                 className="sidebar-pin"
-                aria-label={t("menu.pinSidebar")}
+                aria-label={t('menu.pinSidebar')}
                 aria-pressed={pinned}
-                title={t(pinned ? "menu.unpinSidebar" : "menu.pinSidebar")}
+                title={t(pinned ? 'menu.unpinSidebar' : 'menu.pinSidebar')}
                 onClick={togglePinned}
               >
                 {pinned ? <PushpinFilled aria-hidden /> : <PushpinOutlined aria-hidden />}
@@ -392,28 +392,28 @@ export default function AppSidebar() {
                 id="theme-cycle"
                 isDark={isDark}
                 isUltra={isUltra}
-                onCycle={() => cycleTheme("theme-cycle")}
-                ariaLabel={t("menu.theme")}
+                onCycle={() => cycleTheme('theme-cycle')}
+                ariaLabel={t('menu.theme')}
               />
             </div>
           )}
         </div>
         <Tooltip
           title={
-            railCollapsed ? t("commandPalette.title") || "Command Palette (Ctrl + K)" : undefined
+            railCollapsed ? t('commandPalette.title') || 'Command Palette (Ctrl + K)' : undefined
           }
           placement="right"
         >
           <button
             type="button"
-            className={`sidebar-command-trigger${railCollapsed ? " collapsed" : ""}`}
+            className={`sidebar-command-trigger${railCollapsed ? ' collapsed' : ''}`}
             onClick={openCommandPalette}
-            aria-label={t("commandPalette.title") || "Command Palette (Ctrl + K)"}
+            aria-label={t('commandPalette.title') || 'Command Palette (Ctrl + K)'}
           >
             <span className="sidebar-command-left">
               <SearchOutlined aria-hidden className="sidebar-command-icon" />
               <span className="sidebar-command-text">
-                {t("commandPalette.search") || "Search..."}
+                {t('commandPalette.search') || 'Search...'}
               </span>
             </span>
             <span className="sidebar-command-kbd">
@@ -453,8 +453,8 @@ export default function AppSidebar() {
         size="min(82vw, 320px)"
         styles={{
           wrapper: { padding: 0 },
-          body: { padding: 0, display: "flex", flexDirection: "column", height: "100%" },
-          header: { display: "none" },
+          body: { padding: 0, display: 'flex', flexDirection: 'column', height: '100%' },
+          header: { display: 'none' },
         }}
         onClose={() => setDrawerOpen(false)}
       >
@@ -463,19 +463,19 @@ export default function AppSidebar() {
             <span className="drawer-brand">3X-UI</span>
           </div>
           <div className="drawer-header-actions">
-            <DocsButton ariaLabel={t("menu.docs") || "Documentation"} />
-            <DonateButton ariaLabel={t("menu.donate") || "Donate"} />
+            <DocsButton ariaLabel={t('menu.docs') || 'Documentation'} />
+            <DonateButton ariaLabel={t('menu.donate') || 'Donate'} />
             <ThemeCycleButton
               id="theme-cycle-drawer"
               isDark={isDark}
               isUltra={isUltra}
-              onCycle={() => cycleTheme("theme-cycle-drawer")}
-              ariaLabel={t("menu.theme")}
+              onCycle={() => cycleTheme('theme-cycle-drawer')}
+              ariaLabel={t('menu.theme')}
             />
             <button
               className="drawer-close"
               type="button"
-              aria-label={t("close")}
+              aria-label={t('close')}
               onClick={() => setDrawerOpen(false)}
             >
               <CloseOutlined aria-hidden />
@@ -489,12 +489,12 @@ export default function AppSidebar() {
             setDrawerOpen(false);
             openCommandPalette();
           }}
-          aria-label={t("commandPalette.title") || "Command Palette (Ctrl + K)"}
-          style={{ margin: "8px 12px 4px", width: "calc(100% - 24px)" }}
+          aria-label={t('commandPalette.title') || 'Command Palette (Ctrl + K)'}
+          style={{ margin: '8px 12px 4px', width: 'calc(100% - 24px)' }}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <SearchOutlined aria-hidden className="sidebar-command-icon" />
-            <span>{t("commandPalette.search") || "Search..."}</span>
+            <span>{t('commandPalette.search') || 'Search...'}</span>
           </span>
           <span className="sidebar-command-kbd">
             <span className="kbd-cmd">{SHORTCUT_MODIFIER}</span>
@@ -534,7 +534,7 @@ export default function AppSidebar() {
         <button
           className="drawer-handle"
           type="button"
-          aria-label={t("menu.openMenu")}
+          aria-label={t('menu.openMenu')}
           onClick={() => setDrawerOpen(true)}
         >
           <MenuOutlined aria-hidden />
