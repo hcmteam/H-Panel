@@ -712,7 +712,9 @@ function PlansPageContent() {
                           disabled={!assignedPlanClients.length}
                           onChange={(event) =>
                             setSelectedPlanClientIds(
-                              event.target.checked ? assignedPlanClients.map((client) => client.id) : [],
+                              event.target.checked
+                                ? assignedPlanClients.map((client) => client.id)
+                                : [],
                             )
                           }
                         >
@@ -720,13 +722,17 @@ function PlansPageContent() {
                         </Checkbox>
                         {selectedPlanClientIds.length > 0 && (
                           <Popconfirm
-                            title={label('plans.removeSelectedTitle', 'Remove selected clients from this plan?')}
+                            title={label(
+                              'plans.removeSelectedTitle',
+                              'Remove selected clients from this plan?',
+                            )}
                             okText={label('common.remove', 'Remove')}
                             cancelText={label('common.cancel', 'Cancel')}
                             onConfirm={removeSelectedPlanClients}
                           >
                             <Button danger size="small">
-                              {label('plans.removeSelected', 'Remove selected')} ({selectedPlanClientIds.length})
+                              {label('plans.removeSelected', 'Remove selected')} (
+                              {selectedPlanClientIds.length})
                             </Button>
                           </Popconfirm>
                         )}
@@ -743,134 +749,134 @@ function PlansPageContent() {
                     {assignedPlanClients.length ? (
                       <div className="pn-plan-client-grid">
                         {assignedPlanClients.map((client) => {
-                            const clientInboundIds = client.inbounds?.length
-                              ? client.inbounds
-                              : (selectedPlan.inboundIds ?? []);
-                            const busy = planClientActionEmail === client.email;
-                            return (
-                              <article className="pn-plan-client-row" key={client.id}>
-                                <div className="pn-plan-client-heading">
-                                  <Checkbox
-                                    checked={selectedPlanClientIds.includes(client.id)}
-                                    onChange={(event) =>
-                                      setSelectedPlanClientIds((current) =>
-                                        event.target.checked
-                                          ? [...new Set([...current, client.id])]
-                                          : current.filter((id) => id !== client.id),
-                                      )
-                                    }
-                                    aria-label={`Select ${client.email}`}
-                                  />
-                                  <Button
-                                    type="link"
-                                    className="pn-plan-client-name"
-                                    title={client.email}
-                                    onClick={() => {
-                                      setFocusedKeyEmail(client.email);
-                                      setActiveTab('keys');
-                                    }}
-                                  >
-                                    {client.email}
-                                  </Button>
-                                  {client.telegramId ? (
-                                    <Typography.Text type="secondary">
-                                      {client.telegramId}
-                                    </Typography.Text>
-                                  ) : null}
-                                </div>
-                                <div className="pn-plan-client-inbounds" aria-label="Inbounds">
-                                  {clientInboundIds.length ? (
-                                    clientInboundIds.map((id) => {
-                                      const inbound = inbounds.find((item) => item.id === id);
-                                      const name =
-                                        inbound?.remark ||
-                                        inbound?.tag ||
-                                        inbound?.protocol ||
-                                        String(id);
-                                      return (
-                                        <Tag key={id} title={name}>
-                                          {name}
-                                        </Tag>
-                                      );
-                                    })
-                                  ) : (
-                                    <Typography.Text type="secondary">
-                                      {label('pages.clients.attachedInbounds', 'Inbounds')}: —
-                                    </Typography.Text>
+                          const clientInboundIds = client.inbounds?.length
+                            ? client.inbounds
+                            : (selectedPlan.inboundIds ?? []);
+                          const busy = planClientActionEmail === client.email;
+                          return (
+                            <article className="pn-plan-client-row" key={client.id}>
+                              <div className="pn-plan-client-heading">
+                                <Checkbox
+                                  checked={selectedPlanClientIds.includes(client.id)}
+                                  onChange={(event) =>
+                                    setSelectedPlanClientIds((current) =>
+                                      event.target.checked
+                                        ? [...new Set([...current, client.id])]
+                                        : current.filter((id) => id !== client.id),
+                                    )
+                                  }
+                                  aria-label={`Select ${client.email}`}
+                                />
+                                <Button
+                                  type="link"
+                                  className="pn-plan-client-name"
+                                  title={client.email}
+                                  onClick={() => {
+                                    setFocusedKeyEmail(client.email);
+                                    setActiveTab('keys');
+                                  }}
+                                >
+                                  {client.email}
+                                </Button>
+                                {client.telegramId ? (
+                                  <Typography.Text type="secondary">
+                                    {client.telegramId}
+                                  </Typography.Text>
+                                ) : null}
+                              </div>
+                              <div className="pn-plan-client-inbounds" aria-label="Inbounds">
+                                {clientInboundIds.length ? (
+                                  clientInboundIds.map((id) => {
+                                    const inbound = inbounds.find((item) => item.id === id);
+                                    const name =
+                                      inbound?.remark ||
+                                      inbound?.tag ||
+                                      inbound?.protocol ||
+                                      String(id);
+                                    return (
+                                      <Tag key={id} title={name}>
+                                        {name}
+                                      </Tag>
+                                    );
+                                  })
+                                ) : (
+                                  <Typography.Text type="secondary">
+                                    {label('pages.clients.attachedInbounds', 'Inbounds')}: —
+                                  </Typography.Text>
+                                )}
+                              </div>
+                              <Space wrap size={[4, 4]} className="pn-plan-client-actions">
+                                <Button
+                                  size="small"
+                                  icon={<EditOutlined aria-hidden />}
+                                  onClick={() => void openPlanClientEdit(client)}
+                                >
+                                  {label('common.edit', 'Edit')}
+                                </Button>
+                                <Popconfirm
+                                  title={label('pages.inbounds.resetTraffic', 'Reset traffic')}
+                                  description={label(
+                                    'pages.inbounds.resetTrafficContent',
+                                    'Reset this client’s traffic usage?',
                                   )}
-                                </div>
-                                <Space wrap size={[4, 4]} className="pn-plan-client-actions">
+                                  okText={label('reset', 'Reset')}
+                                  cancelText={label('cancel', 'Cancel')}
+                                  onConfirm={() => void resetClientTraffic(client)}
+                                >
                                   <Button
                                     size="small"
-                                    icon={<EditOutlined aria-hidden />}
-                                    onClick={() => void openPlanClientEdit(client)}
+                                    icon={<RetweetOutlined aria-hidden />}
+                                    loading={busy}
                                   >
-                                    {label('common.edit', 'Edit')}
+                                    {label('plans.resetTraffic', 'Reset GB')}
                                   </Button>
-                                  <Popconfirm
-                                    title={label('pages.inbounds.resetTraffic', 'Reset traffic')}
-                                    description={label(
-                                      'pages.inbounds.resetTrafficContent',
-                                      'Reset this client’s traffic usage?',
-                                    )}
-                                    okText={label('reset', 'Reset')}
-                                    cancelText={label('cancel', 'Cancel')}
-                                    onConfirm={() => void resetClientTraffic(client)}
+                                </Popconfirm>
+                                <Popconfirm
+                                  title={label('plans.add30DaysTitle', 'Add 30 days?')}
+                                  description={label(
+                                    'plans.add30DaysDescription',
+                                    'Extend this client’s expiry date by 30 days.',
+                                  )}
+                                  okText={label('common.add', 'Add')}
+                                  cancelText={label('common.cancel', 'Cancel')}
+                                  onConfirm={() => void addClientDays(client)}
+                                >
+                                  <Button
+                                    size="small"
+                                    icon={<PlusOutlined aria-hidden />}
+                                    loading={busy}
                                   >
-                                    <Button
-                                      size="small"
-                                      icon={<RetweetOutlined aria-hidden />}
-                                      loading={busy}
-                                    >
-                                      {label('plans.resetTraffic', 'Reset GB')}
-                                    </Button>
-                                  </Popconfirm>
-                                  <Popconfirm
-                                    title={label('plans.add30DaysTitle', 'Add 30 days?')}
-                                    description={label(
-                                      'plans.add30DaysDescription',
-                                      'Extend this client’s expiry date by 30 days.',
+                                    {label('plans.add30Days', '+30 days')}
+                                  </Button>
+                                </Popconfirm>
+                                <Popconfirm
+                                  title={label(
+                                    'plans.removeClientTitle',
+                                    'Remove this client from the plan?',
+                                  )}
+                                  description={label(
+                                    'plans.removeClientDescription',
+                                    'The client account will remain on the VPS.',
+                                  )}
+                                  okText={label('common.remove', 'Remove')}
+                                  cancelText={label('common.cancel', 'Cancel')}
+                                  onConfirm={() => removeClientFromPlan(client)}
+                                >
+                                  <Button
+                                    danger
+                                    type="text"
+                                    size="small"
+                                    icon={<DeleteOutlined aria-hidden />}
+                                    aria-label={label(
+                                      'plans.removeClient',
+                                      'Remove client from plan',
                                     )}
-                                    okText={label('common.add', 'Add')}
-                                    cancelText={label('common.cancel', 'Cancel')}
-                                    onConfirm={() => void addClientDays(client)}
-                                  >
-                                    <Button
-                                      size="small"
-                                      icon={<PlusOutlined aria-hidden />}
-                                      loading={busy}
-                                    >
-                                      {label('plans.add30Days', '+30 days')}
-                                    </Button>
-                                  </Popconfirm>
-                                  <Popconfirm
-                                    title={label(
-                                      'plans.removeClientTitle',
-                                      'Remove this client from the plan?',
-                                    )}
-                                    description={label(
-                                      'plans.removeClientDescription',
-                                      'The client account will remain on the VPS.',
-                                    )}
-                                    okText={label('common.remove', 'Remove')}
-                                    cancelText={label('common.cancel', 'Cancel')}
-                                    onConfirm={() => removeClientFromPlan(client)}
-                                  >
-                                    <Button
-                                      danger
-                                      type="text"
-                                      size="small"
-                                      icon={<DeleteOutlined aria-hidden />}
-                                      aria-label={label(
-                                        'plans.removeClient',
-                                        'Remove client from plan',
-                                      )}
-                                    />
-                                  </Popconfirm>
-                                </Space>
-                              </article>
-                            );
-                          })}
+                                  />
+                                </Popconfirm>
+                              </Space>
+                            </article>
+                          );
+                        })}
                       </div>
                     ) : (
                       <Empty
