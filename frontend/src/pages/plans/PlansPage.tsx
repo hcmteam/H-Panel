@@ -809,10 +809,10 @@ function PlansPageContent() {
                                 <Button
                                   size="small"
                                   icon={<EditOutlined aria-hidden />}
+                                  aria-label={label('common.edit', 'Edit')}
+                                  title={label('common.edit', 'Edit')}
                                   onClick={() => void openPlanClientEdit(client)}
-                                >
-                                  {label('common.edit', 'Edit')}
-                                </Button>
+                                />
                                 <Popconfirm
                                   title={label('pages.inbounds.resetTraffic', 'Reset traffic')}
                                   description={label(
@@ -826,10 +826,10 @@ function PlansPageContent() {
                                   <Button
                                     size="small"
                                     icon={<RetweetOutlined aria-hidden />}
+                                    aria-label={label('plans.resetTraffic', 'Reset GB')}
+                                    title={label('plans.resetTraffic', 'Reset GB')}
                                     loading={busy}
-                                  >
-                                    {label('plans.resetTraffic', 'Reset GB')}
-                                  </Button>
+                                  />
                                 </Popconfirm>
                                 <Popconfirm
                                   title={label('plans.add30DaysTitle', 'Add 30 days?')}
