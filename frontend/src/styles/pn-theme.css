@@ -2706,14 +2706,14 @@ body:has(.pn-responsive-modal)
     gap: 8px !important;
     margin: 10px 0 16px !important;
   }
-  .pn-plan-detail-page .pn-plan-stat {
+  .pn-plan-detail-page .pn-plan-stats .pn-stat {
     min-height: 96px !important;
     padding: 12px !important;
   }
-  .pn-plan-detail-page .pn-plan-stat .sm {
+  .pn-plan-detail-page .pn-plan-stats .pn-stat .sm {
     font-size: 12px !important;
   }
-  .pn-plan-detail-page .pn-plan-stat .big {
+  .pn-plan-detail-page .pn-plan-stats .pn-stat .big {
     font-size: 22px !important;
   }
   .pn-plan-detail-page .ant-tabs-nav {
