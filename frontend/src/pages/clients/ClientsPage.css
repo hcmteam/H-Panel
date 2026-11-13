@@ -814,3 +814,65 @@
     border-radius: 12px;
   }
 }
+
+
+/* Make the requested client list layout/status treatment consistent at all widths. */
+.clients-page .client-cards {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+.clients-page .client-card {
+  min-width: 0;
+  padding: 9px 11px !important;
+}
+.clients-page .client-card .card-head {
+  min-width: 0;
+}
+.clients-page .tag-name.client-name-marquee {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.client-name-marquee > span {
+  display: inline-block;
+  max-width: none;
+  white-space: nowrap;
+}
+.client-name-marquee.is-overflowing > span {
+  animation: client-name-marquee-scroll 7s ease-in-out infinite alternate;
+}
+@keyframes client-name-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-1 * var(--client-name-distance, 0px))); }
+}
+.client-status-dot {
+  display: inline-block;
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  margin-inline-end: 2px;
+  border-radius: 50%;
+}
+.client-status-dot.is-online {
+  background: #24d17e;
+  box-shadow: 0 0 0 2px rgba(36, 209, 126, 0.15);
+  animation: client-online-pulse 1.2s ease-in-out infinite;
+}
+.client-status-dot.is-expired {
+  background: #ff4d4f;
+}
+.client-status-dot.is-offline {
+  background: #555968;
+}
+@keyframes client-online-pulse {
+  50% { opacity: 0.35; transform: scale(0.78); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-name-marquee.is-overflowing > span,
+  .client-status-dot.is-online {
+    animation: none;
+  }
+}
