@@ -1726,15 +1726,42 @@ _install_xui_service_unit() {
 # releases/latest redirect, which is not subject to the unauthenticated API's
 # 60 req/h-per-IP limit that trips shared CI/CGNAT addresses (the install then
 # fails with "Failed to fetch x-ui version"), and falls back to the API.
+release_asset_available() {
+    local status
+    status=$(curl -sSLI -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 60 "$1" 2>/dev/null) || return 1
+    [[ "$status" == "200" ]]
+}
+
+# Prefer the latest stable release only when it actually publishes the Linux
+# archive for this server's architecture. If the repository has no usable
+# stable binary yet, install the rolling dev release instead of failing on a
+# missing asset (or selecting a source-only/draft release).
 resolve_latest_tag() {
-    local url tag
+    local url tag stable_asset dev_asset
+    stable_asset="https://github.com/hcmteam/H-Panel/releases/download"
+    dev_asset="${stable_asset}/dev-latest/x-ui-linux-$(arch).tar.gz"
+
     url=$(curl -sSLI -o /dev/null -w '%{url_effective}' --retry 5 --retry-delay 3 --connect-timeout 15 --max-time 60 "https://github.com/hcmteam/H-Panel/releases/latest" 2>/dev/null)
     tag=${url##*/tag/}
-    if [[ "$tag" != "$url" && -n "$tag" && "$tag" != "latest" ]]; then
-        echo "$tag"
+    if [[ "$tag" == "$url" || -z "$tag" || "$tag" == "latest" ]]; then
+        tag=$(curl -Ls --retry 5 --retry-delay 3 --connect-timeout 15 --max-time 60 "https://api.github.com/repos/hcmteam/H-Panel/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+
+    if [[ -n "$tag" && "$tag" != "latest" ]]; then
+        if release_asset_available "${stable_asset}/${tag}/x-ui-linux-$(arch).tar.gz"; then
+            echo "$tag"
+            return 0
+        fi
+        echo -e "${yellow}Stable release ${tag} has no Linux archive for $(arch); checking the rolling dev release.${plain}" >&2
+    fi
+
+    if release_asset_available "$dev_asset"; then
+        echo "dev-latest"
         return 0
     fi
-    curl -Ls --retry 5 --retry-delay 3 --connect-timeout 15 --max-time 60 "https://api.github.com/repos/hcmteam/H-Panel/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'
+
+    echo -e "${red}No installable Linux release was found (stable tag: ${tag:-unavailable}; dev-latest is missing the $(arch) archive). Please check the repository releases.${plain}" >&2
+    return 1
 }
 
 # Releases publish <asset>.sha256 next to each archive. A mismatch or a failed
