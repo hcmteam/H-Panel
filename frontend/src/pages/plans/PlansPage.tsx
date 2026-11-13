@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { PlanCard, PnStatTile, ResponsiveSheet, type PlanModel } from '@/components/pn';
 import { clientManagementPath } from '@/api/client-management';
 import { ClientHydrateSchema } from '@/schemas/client';
+import { SlimInboundListSchema } from '@/schemas/inbound';
 import { HttpUtil, RandomUtil } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
 
@@ -27,7 +28,14 @@ type ClientDraft = {
   planId: number | string;
   telegramId?: string;
   group?: string;
-  inbounds?: string[];
+  inbounds?: number[];
+};
+type PlanInbound = {
+  id: number;
+  protocol: string;
+  tag?: string;
+  remark?: string;
+  enable?: boolean;
 };
 
 const EMPTY_PLAN: PlanDraft = {
@@ -53,7 +61,12 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
-const applyPlanToClient = async (plan: PlanModel, email: string): Promise<void> => {
+const applyPlanToClient = async (
+  plan: PlanModel,
+  email: string,
+  inboundIds: number[],
+  clientDetails: Pick<ClientDraft, 'telegramId' | 'group'>,
+): Promise<void> => {
   const raw = await HttpUtil.get(clientManagementPath('get', email));
   const hydrated = parseMsg(raw, ClientHydrateSchema, 'clients/get');
   if (!hydrated?.success || !hydrated.obj?.client) {
@@ -68,12 +81,31 @@ const applyPlanToClient = async (plan: PlanModel, email: string): Promise<void> 
     limitIp: Math.max(0, Number(plan.limitIp) || 0),
     limitHwid: Math.max(0, Number(plan.hwidLimit) || 0),
     trafficReset: plan.trafficReset || 'never',
+    tgId: clientDetails.telegramId?.trim()
+      ? Number(clientDetails.telegramId) || client.tgId
+      : client.tgId,
+    group: clientDetails.group?.trim() || client.group,
   };
   const result = await HttpUtil.post(clientManagementPath('update', email), updatedClient, {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!result?.success) {
     throw new Error(result?.msg || 'Could not apply the plan to ' + email + '.');
+  }
+
+  const currentInboundIds = Array.isArray(hydrated.obj.inboundIds) ? hydrated.obj.inboundIds : [];
+  const inboundsToAttach = inboundIds.filter((id) => !currentInboundIds.includes(id));
+  if (inboundsToAttach.length) {
+    const attached = await HttpUtil.post(
+      `/panel/api/clients/${encodeURIComponent(email)}/attach`,
+      { inboundIds: inboundsToAttach },
+      { headers: { 'Content-Type': 'application/json' } },
+    );
+    if (!attached?.success) {
+      throw new Error(
+        attached?.msg || 'Plan limits were saved, but the inbound could not be attached.',
+      );
+    }
   }
 };
 
@@ -92,6 +124,38 @@ function PlansPageContent() {
     return Array.isArray(stored) ? (stored as (ClientDraft & { id: string })[]) : [];
   });
   const [planConfigLoaded, setPlanConfigLoaded] = useState(false);
+  const [inbounds, setInbounds] = useState<PlanInbound[]>([]);
+  const [inboundsLoading, setInboundsLoading] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setInboundsLoading(true);
+    void HttpUtil.get('/panel/api/inbounds/list/slim', undefined, { silent: true })
+      .then((response) => {
+        if (!response?.success) throw new Error(response?.msg || 'Could not load inbounds.');
+        const parsed = parseMsg(response, SlimInboundListSchema, 'inbounds/list/slim');
+        if (!active) return;
+        setInbounds(
+          (parsed.obj ?? []).map((item) => ({
+            id: item.id,
+            protocol: item.protocol,
+            tag: typeof item.tag === 'string' ? item.tag : '',
+            remark: typeof item.remark === 'string' ? item.remark : '',
+            enable: item.enable !== false,
+          })),
+        );
+      })
+      .catch((error) => {
+        if (active) {
+          message.error(error instanceof Error ? error.message : 'Could not load inbounds.');
+        }
+      })
+      .finally(() => {
+        if (active) setInboundsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     const loadPlanConfig = async () => {
@@ -214,7 +278,7 @@ function PlansPageContent() {
     setDeleteOpen(false);
   };
   const openAddClient = () => {
-    clientForm.setFieldsValue({ email: '', planId: selectedPlan?.id ?? '' });
+    clientForm.setFieldsValue({ email: '', planId: selectedPlan?.id ?? '', inbounds: [] });
     setClientOpen(true);
   };
   const submitClient = async () => {
@@ -234,7 +298,7 @@ function PlansPageContent() {
         );
         return;
       }
-      await applyPlanToClient(plan, values.email.trim());
+      await applyPlanToClient(plan, values.email.trim(), values.inbounds ?? [], values);
       const client = { ...values, email: values.email.trim(), id: RandomUtil.randomUUID() };
       setLinkedClients((current) => [...current, client]);
       setPlans((current) =>
@@ -249,7 +313,9 @@ function PlansPageContent() {
           ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 }
           : current,
       );
-      messageApi.success(label('plans.clientCreated', 'Client linked and plan limits applied.'));
+      messageApi.success(
+        label('plans.applyExistingClient', 'Plan and selected inbounds applied to client.'),
+      );
       setClientOpen(false);
       clientForm.resetFields();
     } catch (error) {
@@ -484,7 +550,7 @@ function PlansPageContent() {
         </ResponsiveSheet>
         <ResponsiveSheet
           open={clientOpen}
-          title={label('plans.addClientTitle', 'Add client from plan')}
+          title={label('plans.applyExistingClient', 'Apply plan to existing client')}
           onClose={() => setClientOpen(false)}
           footer={sheetFooter(
             () => setClientOpen(false),
@@ -509,14 +575,44 @@ function PlansPageContent() {
             <Form.Item name="group" label={label('menu.groups', 'Group')}>
               <Input />
             </Form.Item>
-            <Form.Item name="inbounds" label={label('menu.inbounds', 'Inbounds')}>
+            <Form.Item
+              name="inbounds"
+              label={label('menu.inbounds', 'Inbounds')}
+              extra={label(
+                'plans.inboundAttachHint',
+                'Selected inbounds will be attached to this existing client.',
+              )}
+              rules={[
+                {
+                  required: true,
+                  type: 'array',
+                  min: 1,
+                  message: label('plans.selectInbound', 'Choose at least one inbound.'),
+                },
+              ]}
+            >
               <Select
-                disabled
+                mode="multiple"
+                showSearch
+                optionFilterProp="label"
+                loading={inboundsLoading}
+                disabled={inboundsLoading || inbounds.length === 0}
                 aria-label={label('menu.inbounds', 'Inbounds')}
-                placeholder={label(
-                  'plans.backendPending',
-                  'Connect the backend to choose inbounds',
-                )}
+                placeholder={
+                  inboundsLoading
+                    ? label('common.loading', 'Loading inbounds…')
+                    : inbounds.length
+                      ? label('plans.chooseInbounds', 'Choose one or more inbounds')
+                      : label('plans.noActiveInbounds', 'No inbounds are available')
+                }
+                options={inbounds
+                  .filter((inbound) => inbound.enable !== false)
+                  .map((inbound) => ({
+                    value: inbound.id,
+                    label:
+                      [inbound.remark, inbound.tag, inbound.protocol].filter(Boolean).join(' · ') ||
+                      `Inbound #${inbound.id}`,
+                  }))}
               />
             </Form.Item>
             <Typography.Text type="secondary">
