@@ -235,7 +235,7 @@ function PlansPageContent() {
     const email = meta.email.trim();
     const sourceClient: Record<string, unknown> =
       'client' in payload && payload.client && typeof payload.client === 'object'
-        ? payload.client
+        ? (payload.client as Record<string, unknown>)
         : payload;
     const requestedInboundIds =
       'inboundIds' in payload && Array.isArray(payload.inboundIds)
