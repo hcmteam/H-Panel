@@ -2357,10 +2357,39 @@ body:has(.pn-responsive-modal)
 
 
 /* Plan cards are the navigation target after removing the separate Open button. */
-.pn-plan-card[role="button"] {
+
+
+/* A native full-card button keeps the card keyboard accessible without nested buttons. */
+.pn-plan-card {
+  position: relative;
+}
+.pn-plan-card-hit-area {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0 !important;
+  border-radius: inherit;
+  background: transparent !important;
+  box-shadow: none !important;
   cursor: pointer;
 }
-.pn-plan-card[role="button"]:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--li) 75%, white);
+.pn-plan-card-hit-area:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--li) 75%, white) !important;
   outline-offset: 3px;
+}
+.pn-plan-card > .fill {
+  z-index: 0;
+}
+.pn-plan-card > :not(.fill):not(.pn-plan-card-hit-area) {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+.pn-plan-card > .r .ant-btn {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
