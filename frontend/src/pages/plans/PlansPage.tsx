@@ -83,6 +83,8 @@ const applyPlanToClient = async (
   const client = hydrated.obj.client;
   const updatedClient = {
     ...client,
+    // Hydrated ClientRecord.id is the database number; update expects the proxy UUID string.
+    id: client.uuid,
     totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
     expiryTime: plan.durationDays > 0 ? Date.now() + plan.durationDays * 24 * 60 * 60 * 1000 : 0,
     limitIp: Math.max(0, Number(plan.limitIp) || 0),
