@@ -82,8 +82,24 @@ const applyPlanToClient = async (
   }
 
   const client = hydrated.obj.client;
+  const clientFields = { ...client } as Record<string, unknown>;
+  const allowedIpsValue =
+    clientFields.allowedIps ?? clientFields.allowedIPs ?? clientFields.AllowedIPs;
+  const normalizedAllowedIps =
+    Array.isArray(allowedIpsValue) && allowedIpsValue.every((value) => typeof value === 'string')
+      ? allowedIpsValue
+      : typeof allowedIpsValue === 'string'
+        ? allowedIpsValue
+            .split(/[\\n,]/)
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : [];
+  delete clientFields.allowedIps;
+  delete clientFields.allowedIPs;
+  delete clientFields.AllowedIPs;
   const updatedClient = {
-    ...client,
+    ...clientFields,
+    ...(allowedIpsValue == null ? {} : { allowedIps: normalizedAllowedIps }),
     // Hydrated ClientRecord.id is the database number; update expects the proxy UUID string.
     id: client.uuid,
     totalGB: Math.round(Math.max(0, Number(plan.totalGB) || 0) * 1024 ** 3),
