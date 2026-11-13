@@ -853,13 +853,13 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .pn-empty-state {
-  min-height: 260px;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 14px;
-  padding: 24px;
+  gap: 10px;
+  padding: 16px;
 }
 .pn-form-grid {
   display: grid;
@@ -909,11 +909,11 @@ body {
   color: var(--on-acc);
 }
 .pn-plan-rule-summary {
-  max-width: 700px;
-  margin: 20px 0;
-  padding: 16px;
+  max-width: 560px;
+  margin: 14px 0;
+  padding: 12px;
   border: 1px solid var(--ln);
-  border-radius: 20px;
+  border-radius: 16px;
   background: var(--s1);
 }
 .pn-sheet-footer {
@@ -2099,7 +2099,9 @@ body:has(.pn-responsive-modal)
 }
 
 .pn-page .pn-stat {
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .pn-page .pn-stat:hover {
@@ -2114,7 +2116,10 @@ body:has(.pn-responsive-modal)
   box-shadow:
     0 12px 28px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.13);
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .pn-plan-card:hover {
@@ -2173,4 +2178,37 @@ body:has(.pn-responsive-modal)
   .pn-plan-card {
     transition: none;
   }
+}
+
+/* Match the current Ant modal container and keep plan detail content compact. */
+.ant-modal.pn-responsive-modal > .ant-modal-container,
+.ant-modal-root:has(.pn-responsive-modal) .ant-modal-container {
+  background: var(--surf) !important;
+  color: var(--tx) !important;
+  border: 1px solid var(--ln) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.ant-modal.pn-responsive-modal > .ant-modal-container .ant-modal-header,
+.ant-modal.pn-responsive-modal > .ant-modal-container .ant-modal-body,
+.ant-modal.pn-responsive-modal > .ant-modal-container .ant-modal-footer {
+  background: var(--surf) !important;
+  color: var(--tx) !important;
+}
+
+.pn-plan-detail-page > .hd,
+.pn-plan-detail-page > .wrap {
+  max-width: 1060px;
+  margin-inline: auto;
+}
+
+.pn-plan-detail-page .pn-plan-stats {
+  margin-bottom: 12px;
+}
+
+.pn-plan-detail-page .pn-empty-state {
+  min-height: 180px;
+  gap: 10px;
+  padding: 16px;
 }
