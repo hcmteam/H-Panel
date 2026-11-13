@@ -697,6 +697,7 @@ function PlansPageContent() {
               <Select
                 mode="multiple"
                 allowClear
+                tagRender={selectTagRender}
                 options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
                   value: inbound.id,
                   label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
@@ -919,6 +920,7 @@ function PlansPageContent() {
             <Select
               mode="multiple"
               allowClear
+              tagRender={selectTagRender}
               options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
                 value: inbound.id,
                 label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
