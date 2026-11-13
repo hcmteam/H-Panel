@@ -1066,7 +1066,6 @@ function PlansPageContent() {
               <Switch aria-label={label('plans.startAfterFirstUse', 'Start after first use')} />{' '}
               <span>{label('plans.startAfterFirstUse', 'Start after first use')}</span>
             </Form.Item>
-}
           </Form>
         </ResponsiveSheet>
         <ResponsiveSheet
