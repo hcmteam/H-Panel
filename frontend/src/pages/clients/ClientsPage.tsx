@@ -1418,6 +1418,7 @@ export default function ClientsPage() {
                           Manage →
                         </button>
                       </div>
+                      <div className="clients-plan-panel">
                       <div
                         className="plans-scroller"
                         onPointerDown={(event) => {
@@ -1546,6 +1547,7 @@ export default function ClientsPage() {
                             </button>
                           );
                         })}
+                      </div>
                       </div>
                     </section>
                   </Col>
