@@ -1323,7 +1323,7 @@ html[data-theme='light'] .pn-responsive-sheet .ant-select-outlined {
     font-size: 20px !important;
   }
   .pn-page .pn-plan-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
   }
   .pn-page > .hd h1 {
@@ -2582,4 +2582,83 @@ body:has(.pn-responsive-modal)
   flex: none;
   padding-inline: 7px;
   font-size: 10px;
+}
+
+
+/* Compact mobile plan cards; the card itself remains the detail navigation target. */
+.pn-page:not(.pn-plan-detail-page) > .hd {
+  margin: 0 0 12px !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--ln) !important;
+  border-radius: 14px;
+  background: var(--s1);
+}
+.pn-page .pn-plan-grid > .pn-plan-card,
+.pn-page .pn-plan-grid > .pn-new-plan {
+  aspect-ratio: auto !important;
+  min-height: 148px !important;
+  height: 148px !important;
+}
+.pn-page .pn-plan-grid > .pn-plan-card {
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 12px !important;
+}
+.pn-page .pn-plan-card > .big {
+  font-size: 20px !important;
+}
+.pn-page .pn-plan-card > .rg {
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.pn-page .pn-plan-card > .rg .tag {
+  padding: 3px 6px;
+  font-size: 9px;
+}
+.pn-plan-detail-page .pn-plan-clients-panel {
+  width: calc(100% + 8px);
+  margin-inline: -4px;
+}
+
+@media (max-width: 699px) {
+  .pn-page:not(.pn-plan-detail-page) > .hd {
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+  }
+  .pn-page .pn-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+  .pn-page .pn-plan-grid > .pn-plan-card,
+  .pn-page .pn-plan-grid > .pn-new-plan {
+    min-height: 136px !important;
+    height: 136px !important;
+  }
+  .pn-page .pn-plan-grid > .pn-plan-card {
+    padding: 10px !important;
+  }
+  .pn-page .pn-plan-card > .r {
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .pn-page .pn-plan-card > .r > b {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pn-page .pn-plan-card > .big {
+    font-size: 18px !important;
+  }
+  .pn-page .pn-plan-card > .rg {
+    gap: 4px;
+    padding-top: 2px;
+  }
+  .pn-page .pn-plan-card > .rg .tag {
+    padding-inline: 5px;
+    font-size: 8px;
+  }
 }
