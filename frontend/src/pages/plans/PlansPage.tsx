@@ -120,6 +120,7 @@ function PlansPageContent() {
   const { t } = useTranslation();
   const label = (key: string, fallback: string) => t(key, { defaultValue: fallback });
   const { inbounds: clientInbounds, tgBotEnable, create: createClient } = useClients();
+  const [messageApi, messageContextHolder] = message.useMessage();
 
   const [plans, setPlans] = useState<PlanModel[]>(() => {
     const stored = readStored<PlanModel[]>(PLAN_STORAGE_KEY, []);
@@ -162,7 +163,7 @@ function PlansPageContent() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [messageApi]);
   useEffect(() => {
     let active = true;
     const loadPlanConfig = async () => {
@@ -208,7 +209,6 @@ function PlansPageContent() {
   const [activeTab, setActiveTab] = useState<'clients' | 'keys'>('clients');
   const [form] = Form.useForm<PlanDraft>();
   const [clientForm] = Form.useForm<ClientDraft>();
-  const [messageApi, messageContextHolder] = message.useMessage();
   const clients = useMemo(() => linkedClients.length, [linkedClients]);
   const createNewPlanClient = async (
     payload: Record<string, unknown> | { client: Record<string, unknown>; inboundIds: number[] },
