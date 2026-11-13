@@ -188,7 +188,7 @@ export function PlanCard({
       <div className="r">
         <b>{plan.name}</b>
         {onClick && (
-          <Button size="small" type="text" onClick={onClick}>
+          <Button size="small" className="pn-plan-open" onClick={onClick}>
             Open
           </Button>
         )}
