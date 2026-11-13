@@ -239,7 +239,9 @@ function PlansPageContent() {
         : payload;
     const requestedInboundIds =
       'inboundIds' in payload && Array.isArray(payload.inboundIds)
-        ? payload.inboundIds.filter((id): id is number => typeof id === 'number' && Number.isInteger(id))
+        ? payload.inboundIds.filter(
+            (id): id is number => typeof id === 'number' && Number.isInteger(id),
+          )
         : [];
     const inboundIds = selectedPlan.inboundIds?.length
       ? selectedPlan.inboundIds
@@ -693,15 +695,23 @@ function PlansPageContent() {
                 }))}
               />
             </Form.Item>
-            <Form.Item name="inboundIds" label={label('pages.clients.attachedInbounds', 'Inbounds')}>
+            <Form.Item
+              name="inboundIds"
+              label={label('pages.clients.attachedInbounds', 'Inbounds')}
+            >
               <Select
                 mode="multiple"
                 allowClear
                 tagRender={selectTagRender}
-                options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
-                  value: inbound.id,
-                  label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
-                }))}
+                options={inbounds
+                  .filter((inbound) => inbound.enable !== false)
+                  .map((inbound) => ({
+                    value: inbound.id,
+                    label:
+                      String(inbound.remark || inbound.tag || inbound.protocol) +
+                      ' · ' +
+                      inbound.protocol,
+                  }))}
               />
             </Form.Item>
 
@@ -921,10 +931,15 @@ function PlansPageContent() {
               mode="multiple"
               allowClear
               tagRender={selectTagRender}
-              options={inbounds.filter((inbound) => inbound.enable !== false).map((inbound) => ({
-                value: inbound.id,
-                label: String(inbound.remark || inbound.tag || inbound.protocol) + ' · ' + inbound.protocol,
-              }))}
+              options={inbounds
+                .filter((inbound) => inbound.enable !== false)
+                .map((inbound) => ({
+                  value: inbound.id,
+                  label:
+                    String(inbound.remark || inbound.tag || inbound.protocol) +
+                    ' · ' +
+                    inbound.protocol,
+                }))}
             />
           </Form.Item>
           <Form.Item name="startAfterFirstUse" valuePropName="checked">
@@ -949,3 +964,4 @@ export default function PlansPage() {
     </Layout>
   );
 }
+
