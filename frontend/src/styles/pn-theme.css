@@ -2896,3 +2896,116 @@ body:has(.pn-responsive-modal)
     font-size: 15px !important;
   }
 }
+
+/* Responsive widths for Plans only; keep the existing visual theme intact. */
+@media (max-width: 767px) {
+  #content-layout:has(.pn-plans-header),
+  #content-layout:has(.pn-plan-detail-page) {
+    padding-inline: 4px !important;
+    overflow-x: clip;
+  }
+  .pn-page:has(.pn-plans-header),
+  .pn-plan-detail-page {
+    width: 100% !important;
+    max-width: 1440px;
+    margin-inline: auto !important;
+    padding: 12px !important;
+    box-sizing: border-box;
+    overflow-x: clip;
+  }
+  .pn-page:has(.pn-plans-header) > .pn-plans-header {
+    width: 100%;
+    min-width: 0;
+  }
+  .pn-page:has(.pn-plans-header) > .wrap,
+  .pn-plan-detail-page > .wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: auto !important;
+    padding-inline: 0 !important;
+    box-sizing: border-box;
+  }
+  .pn-page:has(.pn-plans-header) > .pn-plans-header > .pn-plan-stats,
+  .pn-plan-detail-page .pn-plan-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    min-width: 0;
+  }
+  .pn-page:has(.pn-plans-header) > .pn-plans-header > .pn-plan-stats .pn-stat,
+  .pn-plan-detail-page .pn-plan-stats .pn-stat {
+    min-width: 0 !important;
+  }
+  .pn-page:has(.pn-plans-header) .pn-plan-grid,
+  .pn-plan-detail-page .pn-plan-client-grid,
+  .pn-plan-detail-page .pn-plan-keys {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .pn-plan-detail-page .ant-tabs-nav,
+  .pn-plan-detail-page .ant-tabs-nav-wrap,
+  .pn-plan-detail-page .ant-tabs-nav-list {
+    width: 100%;
+    min-width: 0;
+  }
+  .pn-plan-detail-page .ant-tabs-tab {
+    flex: 1 1 50%;
+    justify-content: center;
+    min-width: 0;
+  }
+  .pn-plan-detail-page .pn-plan-client-panel,
+  .pn-plan-detail-page .pn-plan-clients-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 12px !important;
+    box-sizing: border-box;
+  }
+  .pn-plan-detail-page .pn-plan-client-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .pn-plan-detail-page .pn-plan-client-row {
+    width: 100%;
+    min-width: 0;
+    min-height: 156px;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  .pn-plan-detail-page .pn-plan-key-card,
+  .pn-plan-detail-page .pn-plan-key-list,
+  .pn-plan-detail-page .pn-plan-key-list code {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .pn-plan-detail-page .pn-plan-key-card {
+    min-height: 96px;
+    padding: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  #content-layout:has(.pn-plans-header),
+  #content-layout:has(.pn-plan-detail-page) {
+    padding-inline: 8px !important;
+    overflow-x: clip;
+  }
+  .pn-page:has(.pn-plans-header),
+  .pn-plan-detail-page {
+    width: 100% !important;
+    max-width: 1440px;
+    margin-inline: auto !important;
+    padding: 12px !important;
+    box-sizing: border-box;
+  }
+  .pn-page:has(.pn-plans-header) > .wrap,
+  .pn-plan-detail-page > .wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: auto !important;
+    padding-inline: 0 !important;
+    box-sizing: border-box;
+  }
+}
