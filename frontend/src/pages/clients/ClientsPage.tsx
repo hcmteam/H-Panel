@@ -1419,135 +1419,135 @@ export default function ClientsPage() {
                         </button>
                       </div>
                       <div className="clients-plan-panel">
-                      <div
-                        className="plans-scroller"
-                        onPointerDown={(event) => {
-                          if (event.button !== 0) return;
-                          event.currentTarget.classList.add('is-dragging');
-                          planDragRef.current = {
-                            pointerId: event.pointerId,
-                            startX: event.clientX,
-                            startScrollLeft: event.currentTarget.scrollLeft,
-                            moved: false,
-                          };
-                          event.currentTarget.setPointerCapture(event.pointerId);
-                        }}
-                        onPointerMove={(event) => {
-                          const drag = planDragRef.current;
-                          if (!drag || drag.pointerId !== event.pointerId) return;
-                          const delta = event.clientX - drag.startX;
-                          if (Math.abs(delta) > 4) drag.moved = true;
-                          if (drag.moved) {
-                            event.preventDefault();
-                            event.currentTarget.scrollLeft = drag.startScrollLeft - delta;
-                          }
-                        }}
-                        onPointerUp={(event) => {
-                          const drag = planDragRef.current;
-                          if (drag?.pointerId === event.pointerId) {
-                            suppressPlanClickRef.current = drag.moved;
+                        <div
+                          className="plans-scroller"
+                          onPointerDown={(event) => {
+                            if (event.button !== 0) return;
+                            event.currentTarget.classList.add('is-dragging');
+                            planDragRef.current = {
+                              pointerId: event.pointerId,
+                              startX: event.clientX,
+                              startScrollLeft: event.currentTarget.scrollLeft,
+                              moved: false,
+                            };
+                            event.currentTarget.setPointerCapture(event.pointerId);
+                          }}
+                          onPointerMove={(event) => {
+                            const drag = planDragRef.current;
+                            if (!drag || drag.pointerId !== event.pointerId) return;
+                            const delta = event.clientX - drag.startX;
+                            if (Math.abs(delta) > 4) drag.moved = true;
+                            if (drag.moved) {
+                              event.preventDefault();
+                              event.currentTarget.scrollLeft = drag.startScrollLeft - delta;
+                            }
+                          }}
+                          onPointerUp={(event) => {
+                            const drag = planDragRef.current;
+                            if (drag?.pointerId === event.pointerId) {
+                              suppressPlanClickRef.current = drag.moved;
+                              event.currentTarget.classList.remove('is-dragging');
+                              planDragRef.current = null;
+                              window.setTimeout(() => {
+                                suppressPlanClickRef.current = false;
+                              }, 0);
+                            }
+                            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                              event.currentTarget.releasePointerCapture(event.pointerId);
+                            }
+                          }}
+                          onPointerCancel={(event) => {
                             event.currentTarget.classList.remove('is-dragging');
                             planDragRef.current = null;
-                            window.setTimeout(() => {
+                          }}
+                          onClickCapture={(event) => {
+                            if (suppressPlanClickRef.current) {
+                              event.preventDefault();
+                              event.stopPropagation();
                               suppressPlanClickRef.current = false;
-                            }, 0);
-                          }
-                          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                            event.currentTarget.releasePointerCapture(event.pointerId);
-                          }
-                        }}
-                        onPointerCancel={(event) => {
-                          event.currentTarget.classList.remove('is-dragging');
-                          planDragRef.current = null;
-                        }}
-                        onClickCapture={(event) => {
-                          if (suppressPlanClickRef.current) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            suppressPlanClickRef.current = false;
-                          }
-                        }}
-                      >
-                        {planData.length ? (
-                          planData.map((plan) => {
-                            const key = String(plan.id);
-                            const selected = selectedPlanId === key;
+                            }
+                          }}
+                        >
+                          {planData.length ? (
+                            planData.map((plan) => {
+                              const key = String(plan.id);
+                              const selected = selectedPlanId === key;
+                              return (
+                                <button
+                                  type="button"
+                                  key={key}
+                                  className={selected ? 'plan-card selected' : 'plan-card'}
+                                  onClick={() => {
+                                    setSelectedPlanId(selected ? null : key);
+                                    setCurrentPage(1);
+                                  }}
+                                >
+                                  <b title={plan.name}>{plan.name}</b>
+                                  <span className="plan-card-bottom">
+                                    <span>
+                                      IP {plan.limitIp || 0} · HWID {plan.hwidLimit || 0}
+                                    </span>
+                                    <strong>{planEmails.get(key)?.size ?? 0}</strong>
+                                  </span>
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <span className="plans-empty">No plans yet</span>
+                          )}
+                        </div>
+                        <div
+                          className="client-status-chips"
+                          role="group"
+                          aria-label="Client status filters"
+                        >
+                          {[
+                            {
+                              key: 'active',
+                              label: 'Active',
+                              count: summary.active,
+                              buckets: ['active'],
+                            },
+                            {
+                              key: 'online',
+                              label: 'Online',
+                              count: summary.onlineCount,
+                              buckets: ['online'],
+                            },
+                            {
+                              key: 'depleting',
+                              label: 'Depleting',
+                              count: summary.expiringCount,
+                              buckets: ['expiring'],
+                            },
+                            {
+                              key: 'ended',
+                              label: 'Ended',
+                              count: summary.depletedCount + summary.deactiveCount,
+                              buckets: ['depleted', 'deactive'],
+                            },
+                          ].map((chip) => {
+                            const selected =
+                              filters.buckets.length === chip.buckets.length &&
+                              chip.buckets.every((bucket) => filters.buckets.includes(bucket));
                             return (
                               <button
                                 type="button"
-                                key={key}
-                                className={selected ? 'plan-card selected' : 'plan-card'}
+                                key={chip.key}
+                                className={
+                                  selected ? 'client-status-chip selected' : 'client-status-chip'
+                                }
                                 onClick={() => {
-                                  setSelectedPlanId(selected ? null : key);
+                                  setFilters({ ...filters, buckets: selected ? [] : chip.buckets });
                                   setCurrentPage(1);
                                 }}
                               >
-                                <b title={plan.name}>{plan.name}</b>
-                                <span className="plan-card-bottom">
-                                  <span>
-                                    IP {plan.limitIp || 0} · HWID {plan.hwidLimit || 0}
-                                  </span>
-                                  <strong>{planEmails.get(key)?.size ?? 0}</strong>
-                                </span>
+                                <span>{chip.label}</span>
+                                <strong>{chip.count}</strong>
                               </button>
                             );
-                          })
-                        ) : (
-                          <span className="plans-empty">No plans yet</span>
-                        )}
-                      </div>
-                      <div
-                        className="client-status-chips"
-                        role="group"
-                        aria-label="Client status filters"
-                      >
-                        {[
-                          {
-                            key: 'active',
-                            label: 'Active',
-                            count: summary.active,
-                            buckets: ['active'],
-                          },
-                          {
-                            key: 'online',
-                            label: 'Online',
-                            count: summary.onlineCount,
-                            buckets: ['online'],
-                          },
-                          {
-                            key: 'depleting',
-                            label: 'Depleting',
-                            count: summary.expiringCount,
-                            buckets: ['expiring'],
-                          },
-                          {
-                            key: 'ended',
-                            label: 'Ended',
-                            count: summary.depletedCount + summary.deactiveCount,
-                            buckets: ['depleted', 'deactive'],
-                          },
-                        ].map((chip) => {
-                          const selected =
-                            filters.buckets.length === chip.buckets.length &&
-                            chip.buckets.every((bucket) => filters.buckets.includes(bucket));
-                          return (
-                            <button
-                              type="button"
-                              key={chip.key}
-                              className={
-                                selected ? 'client-status-chip selected' : 'client-status-chip'
-                              }
-                              onClick={() => {
-                                setFilters({ ...filters, buckets: selected ? [] : chip.buckets });
-                                setCurrentPage(1);
-                              }}
-                            >
-                              <span>{chip.label}</span>
-                              <strong>{chip.count}</strong>
-                            </button>
-                          );
-                        })}
-                      </div>
+                          })}
+                        </div>
                       </div>
                     </section>
                   </Col>
