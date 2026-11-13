@@ -14,7 +14,7 @@ export const i18n = defineI18n({
 export type Locale = (typeof i18n.languages)[number];
 
 // Display names for the language switcher (in their own script).
-export const locales: { locale: Locale; name: string }[
+export const locales: { locale: Locale; name: string }[] = [
   { locale: 'en', name: 'English' },
 ];
 
