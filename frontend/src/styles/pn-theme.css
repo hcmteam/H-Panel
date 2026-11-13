@@ -2806,7 +2806,7 @@ body:has(.pn-responsive-modal)
 .pn-page > .pn-plans-header {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "title action" "stats stats";
+  grid-template-areas: 'title action' 'stats stats';
   align-items: start;
   gap: 10px 14px !important;
   padding: 16px !important;
