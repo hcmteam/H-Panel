@@ -119,7 +119,7 @@ const applyPlanToClient = async (
 function PlansPageContent() {
   const { t } = useTranslation();
   const label = (key: string, fallback: string) => t(key, { defaultValue: fallback });
-  const { inbounds: clientInbounds, tgBotEnable } = useClients();
+  const { inbounds: clientInbounds, tgBotEnable, create: createClient } = useClients();
 
   const [plans, setPlans] = useState<PlanModel[]>(() => {
     const stored = readStored<PlanModel[]>(PLAN_STORAGE_KEY, []);
@@ -224,9 +224,7 @@ function PlansPageContent() {
   ) => {
     if (!selectedPlan || meta.isEdit) return null;
     const email = meta.email.trim();
-    const created = await HttpUtil.post('/panel/api/clients/add', payload, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const created = await createClient(payload);
     if (!created?.success) return created;
     const inboundIds =
       'inboundIds' in payload && Array.isArray(payload.inboundIds) ? payload.inboundIds : [];
