@@ -323,48 +323,31 @@ function PlansPageContent() {
     };
     const created = await createClient({ client: clientPayload, inboundIds });
     if (!created?.success) return created;
-    try {
-      await applyPlanToClient(selectedPlan, email, inboundIds);
-      const clientRecord = clientPayload;
-      const telegramId = String(clientRecord.tgId ?? '');
-      const group = String(clientRecord.group ?? '');
-      const linked = {
-        email,
-        planId: selectedPlan.id,
-        telegramId,
-        group,
-        inbounds: inboundIds,
-        id: RandomUtil.randomUUID(),
-      };
-      setLinkedClients((current) => [...current, linked]);
-      setPlans((current) =>
-        current.map((item) =>
-          String(item.id) === String(selectedPlan.id)
-            ? { ...item, clientsCount: (item.clientsCount ?? 0) + 1 }
-            : item,
-        ),
-      );
-      setSelectedPlan((current) =>
-        current && String(current.id) === String(selectedPlan.id)
-          ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 }
-          : current,
-      );
-      messageApi.success(
-        label('plans.newClientAdded', 'New client created and added to this plan.'),
-      );
-    } catch (error) {
-      messageApi.warning(
-        error instanceof Error
-          ? label(
-              'plans.newClientCreatedNotAssigned',
-              'Client was created, but the plan could not be applied: {{error}}',
-            ).replace('{{error}}', error.message)
-          : label(
-              'plans.newClientCreatedNotAssignedShort',
-              'Client created; plan was not applied.',
-            ),
-      );
-    }
+    const clientRecord = clientPayload;
+    const telegramId = String(clientRecord.tgId ?? '');
+    const group = String(clientRecord.group ?? '');
+    const linked = {
+      email,
+      planId: selectedPlan.id,
+      telegramId,
+      group,
+      inbounds: inboundIds,
+      id: RandomUtil.randomUUID(),
+    };
+    setLinkedClients((current) => [...current, linked]);
+    setPlans((current) =>
+      current.map((item) =>
+        String(item.id) === String(selectedPlan.id)
+          ? { ...item, clientsCount: (item.clientsCount ?? 0) + 1 }
+          : item,
+      ),
+    );
+    setSelectedPlan((current) =>
+      current && String(current.id) === String(selectedPlan.id)
+        ? { ...current, clientsCount: (current.clientsCount ?? 0) + 1 }
+        : current,
+    );
+    messageApi.success(label('plans.newClientAdded', 'New client created and added to this plan.'));
     return created;
   };
 
