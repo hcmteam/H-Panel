@@ -375,7 +375,6 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
   display: none !important;
 }
 
-
 /* Keep the H-Panel mark readable in the narrow sidebar rail. */
 .ant-layout-sider-collapsed .sider-brand {
   justify-content: center;
@@ -397,5 +396,5 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
   font-size: 17px;
   font-weight: 850;
   text-shadow: none;
-  box-shadow: 0 5px 14px rgba(34, 211, 238, 0.25), inset 0 1px 0 rgba(255,255,255,.55);
+  box-shadow: 0 5px 14px rgba(34, 211, 238, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
