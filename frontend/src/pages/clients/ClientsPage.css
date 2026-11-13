@@ -915,3 +915,71 @@
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* Keep the client manager close to the phone edges without widening the page itself. */
+.clients-page .clients-redesign {
+  width: min(100%, 1280px);
+  min-width: 0;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  #content-layout:has(.clients-redesign) {
+    padding-inline: 4px !important;
+    overflow-x: clip;
+  }
+  .clients-page .clients-redesign {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto 8px;
+    padding-inline: 0;
+  }
+  .clients-redesign .ant-card,
+  .clients-redesign .ant-card-body {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .clients-redesign .ant-card-body {
+    padding: 12px !important;
+  }
+  .clients-redesign .plans-scroller,
+  .clients-redesign .client-status-chips {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .clients-redesign .client-cards {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .clients-redesign .client-cards > .client-card,
+  .clients-redesign .client-cards > .card-empty,
+  .clients-redesign .client-cards > .card-pagination {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .clients-redesign .client-cards > .card-pagination {
+    grid-column: 1 / -1;
+    overflow-x: auto;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  #content-layout:has(.clients-redesign) {
+    padding-inline: 8px !important;
+    overflow-x: clip;
+  }
+  .clients-page .clients-redesign {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+  }
+}
