@@ -1,5 +1,5 @@
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { clientManagementPath } from '@/api/client-management';
@@ -315,6 +315,32 @@ const SORT_OPTIONS: {
 ];
 
 const DEFAULT_SORT = SORT_OPTIONS[0];
+
+function ClientNameMarquee({ name }: { name: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const measure = () => {
+      const distance = Math.max(0, element.scrollWidth - element.clientWidth);
+      element.style.setProperty('--client-name-distance', `${distance}px`);
+      setOverflowing(distance > 2);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    if (element.firstElementChild) observer.observe(element.firstElementChild);
+    return () => observer.disconnect();
+  }, [name]);
+
+  return (
+    <span ref={ref} className={`tag-name client-name-marquee${overflowing ? ' is-overflowing' : ''}`} title={name}>
+      <span>{name}</span>
+    </span>
+  );
+}
 
 function sortValueFor(column: string | null, order: 'ascend' | 'descend' | null): string {
   if (!column || !order) return DEFAULT_SORT.value;
@@ -1985,6 +2011,10 @@ export default function ClientsPage() {
                             )}
                             {filteredClients.map((row) => {
                               const bucket = clientBucket(row);
+                              const online = !!row.enable && bucket !== 'depleted' && isOnline(row.email);
+                              const expired = bucket === 'depleted' ||
+                                (row.expiryTime > 0 && row.expiryTime <= Date.now());
+                              const statusClass = online ? 'is-online' : expired ? 'is-expired' : 'is-offline';
                               return (
                                 <div
                                   key={row.email}
@@ -1995,12 +2025,12 @@ export default function ClientsPage() {
                                       checked={selectedRowKeys.includes(row.email)}
                                       onChange={(e) => toggleSelect(row.email, e.target.checked)}
                                     />
-                                    {row.enable && bucket !== 'depleted' && isOnline(row.email) ? (
-                                      <span className="online-dot" style={{ marginInlineEnd: 0 }} />
-                                    ) : (
-                                      <Badge status={bucketBadgeStatus(bucket)} />
-                                    )}
-                                    <span className="tag-name">{row.email}</span>
+                                    <span
+                                      className={`client-status-dot ${statusClass}`}
+                                      title={online ? 'Online' : expired ? 'Expired' : 'Offline'}
+                                      aria-label={online ? 'Online' : expired ? 'Expired' : 'Offline'}
+                                    />
+                                    <ClientNameMarquee name={row.email} />
                                     {planNameByEmail.has(row.email) && (
                                       <span className="client-plan-tag">
                                         {planNameByEmail.get(row.email)}
@@ -2066,7 +2096,7 @@ export default function ClientsPage() {
                                               0,
                                               Math.ceil((row.expiryTime - Date.now()) / 86400000),
                                             ) + ' days left'}{' '}
-                                      · {row.enable && isOnline(row.email) ? 'Online' : 'Offline'}
+                                      · {online ? 'Online' : 'Offline'}
                                     </span>
                                     <div className="client-card-shortcuts">
                                       <Tooltip title={t('pages.clients.qrCode')}>
