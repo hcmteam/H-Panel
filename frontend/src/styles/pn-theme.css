@@ -2546,3 +2546,40 @@ body:has(.pn-responsive-modal)
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Keep assigned client names readable on dark plan cards and anchor plan limits below. */
+.pn-plan-detail-page > .hd {
+  margin-top: -8px;
+  padding-top: 2px !important;
+}
+.pn-plan-client-name.ant-btn,
+.pn-plan-client-name.ant-btn:hover,
+.pn-plan-client-name.ant-btn:focus-visible {
+  display: flex;
+  justify-content: flex-start;
+  min-height: 30px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--li, #8ea2ff) 14%, var(--s1, #292944)) !important;
+  color: var(--tx, #f2f4ff) !important;
+  text-align: left;
+}
+.pn-plan-client-name.ant-btn:hover {
+  background: color-mix(in srgb, var(--li, #8ea2ff) 24%, var(--s1, #292944)) !important;
+}
+.pn-page .pn-plan-grid > .pn-plan-card {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 168px !important;
+}
+.pn-plan-card > .rg {
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+.pn-plan-card > .rg .tag {
+  flex: none;
+  padding-inline: 7px;
+  font-size: 10px;
+}
