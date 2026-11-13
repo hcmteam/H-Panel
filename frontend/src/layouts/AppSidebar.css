@@ -382,7 +382,7 @@ body.dark .ant-drawer-body .drawer-menu .ant-menu-item-group-list {
 }
 
 .brand-text {
-  color: var(--ant-color-text, #f4f6ff);
+  color: #f4f6ff;
   font-weight: 750;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
