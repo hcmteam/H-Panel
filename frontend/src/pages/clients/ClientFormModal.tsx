@@ -130,7 +130,7 @@ interface ClientFormModalProps {
     durationDays: number;
     limitIp: number;
     hwidLimit: number;
-    trafficReset?: string;
+    trafficReset?: 'never' | 'hourly' | 'daily' | 'weekly' | 'monthly';
     startAfterFirstUse?: boolean;
     inboundIds?: number[];
   };
