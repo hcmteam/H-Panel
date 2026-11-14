@@ -215,8 +215,9 @@ func CheckCertFile(path string) error {
 	if path == "" {
 		return nil
 	}
-	// lgtm[go/path-injection] Xray supports operator-configured absolute certificate paths;
-	// relative paths are validated as local before reaching this bounded-file check.
+	// codeql[go/path-injection] Xray supports operator-configured absolute certificate paths.
+	// Untrusted Xray build inputs are confined in CheckConfigCertFiles before file reads;
+	// this metadata check preserves the existing operator-configured path behavior.
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil
