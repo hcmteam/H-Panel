@@ -169,31 +169,39 @@ func checkCertFileWithinLocalDirectory(path string) error {
 	if err != nil || !pathIsWithin(root, candidate) {
 		return common.NewError(localCertPathError)
 	}
-
-	resolvedRoot, err := filepath.EvalSymlinks(root)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return CheckCertFile(path)
-		}
+	relative, err := filepath.Rel(root, candidate)
+	if err != nil || !filepath.IsLocal(relative) {
 		return common.NewError(localCertPathError)
 	}
-	resolvedCandidate, err := filepath.EvalSymlinks(candidate)
+
+	// OpenRoot keeps the metadata check rooted even when an attacker races path
+	// replacement or supplies a symlink; the core later reads only paths accepted here.
+	certRoot, err := os.OpenRoot(root)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return common.NewError(localCertPathError)
-		}
-		// The file may be created later by the operator. Resolve the parent now
-		// so a symlinked directory cannot escape the configured certificate root.
-		parent, parentErr := filepath.EvalSymlinks(filepath.Dir(candidate))
-		if parentErr == nil && pathIsWithin(resolvedRoot, parent) {
+		if os.IsNotExist(err) {
 			return nil
 		}
 		return common.NewError(localCertPathError)
 	}
-	if !pathIsWithin(resolvedRoot, resolvedCandidate) {
+	defer certRoot.Close()
+
+	file, err := certRoot.Open(relative)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Operators may provision the certificate after saving the configuration.
+			return nil
+		}
 		return common.NewError(localCertPathError)
 	}
-	return CheckCertFile(resolvedCandidate)
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return common.NewError(localCertPathError)
+	}
+	if !info.Mode().IsRegular() || info.Size() == 0 || info.Size() > maxCertFileBytes {
+		return common.NewErrorf("certificate file %q must be a regular file of at most %d bytes", path, maxCertFileBytes)
+	}
+	return nil
 }
 
 func pathIsWithin(root, candidate string) bool {
@@ -219,7 +227,6 @@ func CheckCertFile(path string) error {
 	// inputs are confined in CheckConfigCertFiles before file reads; this metadata check
 	// preserves that existing operator-configured path behavior.
 
-	// codeql[go/path-injection]
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil
