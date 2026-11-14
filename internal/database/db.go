@@ -3703,4 +3703,3 @@ func ValidateSQLiteDB(dbPath string) error {
 	}
 	return nil
 }
-
