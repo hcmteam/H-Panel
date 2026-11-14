@@ -236,10 +236,10 @@ func (s *ServerService) probeRealityAddr(dialHost string, port int, sni string, 
 	}
 
 	cfg := &tls.Config{
-		ServerName: sni,
-		NextProtos: []string{"h2", "http/1.1"},
+		ServerName:       sni,
+		NextProtos:       []string{"h2", "http/1.1"},
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.X25519MLKEM768},
-		MinVersion: tls.VersionTLS12,
+		MinVersion:       tls.VersionTLS12,
 	}
 	tlsConn := tls.Client(conn, cfg)
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
