@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -114,14 +115,19 @@ func runWebServer() {
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)
 	}
-	// Created here, not in InitDB: a CLI call's output is often piped away, and
-	// this log is the one place an operator reads the first login from.
+	// Created here, not in InitDB. Keep the generated password out of process
+	// logs; save first-run credentials in a mode-0600 file instead.
 	username, password, err := database.EnsureFirstUser()
 	if err != nil {
 		log.Fatalf("Error creating the first panel user: %v", err)
 	}
 	if password != "" {
-		log.Printf("No panel user existed, so one was generated. Username: %s  Password: %s  (shown once; change it in Panel Settings)", username, password)
+		credentialsPath, saveErr := saveFirstLoginCredentials(username, password)
+		if saveErr != nil {
+			log.Printf("A first panel user was generated, but saving its credentials failed: %v", saveErr)
+		} else {
+			log.Printf("A first panel user was generated. Credentials are saved in %s (mode 600); remove the file after logging in.", credentialsPath)
+		}
 	}
 
 	server := web.NewServer(sub.NewLinkProvider())
@@ -225,6 +231,34 @@ func runWebServer() {
 			return
 		}
 	}
+}
+
+func saveFirstLoginCredentials(username, password string) (string, error) {
+	dir := config.GetDBFolderPath()
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
+	}
+	path := filepath.Join(dir, "first-login.env")
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return "", err
+	}
+	if err := file.Chmod(0o600); err != nil {
+		file.Close()
+		return "", err
+	}
+	if _, err := fmt.Fprintf(file, "XUI_USERNAME=%s\nXUI_PASSWORD=%s\n", username, password); err != nil {
+		file.Close()
+		return "", err
+	}
+	if err := file.Sync(); err != nil {
+		file.Close()
+		return "", err
+	}
+	if err := file.Close(); err != nil {
+		return "", err
+	}
+	return path, nil
 }
 
 // resetSetting resets all panel settings to their default values.

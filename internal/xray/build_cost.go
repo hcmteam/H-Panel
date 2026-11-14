@@ -136,6 +136,9 @@ func checkCertFileKeys(v any) error {
 		for key, child := range v {
 			if path, ok := child.(string); ok && path != "" && (strings.EqualFold(key, "certificateFile") || strings.EqualFold(key, "keyFile")) {
 				if !filepath.IsAbs(path) {
+					if !filepath.IsLocal(path) {
+						return common.NewError("certificate file path must stay within the local certificate directory")
+					}
 					path = platform.GetCertLocation(path)
 				}
 				if err := CheckCertFile(path); err != nil {
@@ -162,6 +165,8 @@ func CheckCertFile(path string) error {
 	if path == "" {
 		return nil
 	}
+	// lgtm[go/path-injection] Xray supports operator-configured absolute certificate paths;
+	// relative paths are validated as local before reaching this bounded-file check.
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil

@@ -611,10 +611,28 @@ func normalizeCIDR(s string) string {
 // run executes one command, no shell involved, with a bounded timeout and
 // returns its combined output for the error message.
 func run(stdin, name string, args ...string) (string, error) {
+	// Only invoke the fixed system tools used by this package. Keeping the
+	// executable separate from caller supplied values prevents an interface or
+	// firewall value from selecting a different program.
+	var executable string
+	switch name {
+	case "ip":
+		executable = "ip"
+	case "awg":
+		executable = "awg"
+	case "modprobe":
+		executable = "modprobe"
+	case "nft":
+		executable = "nft"
+	case "iptables":
+		executable = "iptables"
+	default:
+		return "", fmt.Errorf("unsupported command %q", name)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, name, args...)
+	cmd := exec.CommandContext(ctx, executable, args...)
 	if stdin != "" {
 		cmd.Stdin = strings.NewReader(stdin)
 	}

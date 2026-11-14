@@ -751,7 +751,7 @@ func (pr *packetReassembler) feed(transport uint8, hdr *PacketHeader, payload []
 		}
 		return nil, nil, false
 	}
-	if entry.size+len(payload) > pr.maxPacketSize {
+	if entry.size > pr.maxPacketSize || len(payload) > pr.maxPacketSize-entry.size {
 		delete(pr.packets, key)
 		return nil, nil, false
 	}
@@ -973,7 +973,11 @@ func (s *Server) relayUDPResponses(
 	if !associations.attachResponseStop(assocID, association, stop) {
 		return
 	}
-	buf := make([]byte, s.maxUdpRelayPacketSize+263)
+	packetSize := s.maxUdpRelayPacketSize
+	if packetSize <= 0 || packetSize > maxSafeUdpRelayPacketSize {
+		packetSize = maxSafeUdpRelayPacketSize
+	}
+	buf := make([]byte, packetSize+263)
 	var nextPktID uint16
 	for {
 		srcAddr, respPayload, err := sess.relay.Receive(buf)

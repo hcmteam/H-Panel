@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -74,9 +75,18 @@ func (inst Instance) StructuralFingerprint() string {
 
 func fingerprintMaterial(value string) string {
 	material := []byte(value)
-	if value != "" && !strings.Contains(value, "-----BEGIN ") && xray.CheckCertFile(value) == nil {
-		if file, err := os.ReadFile(value); err == nil {
-			material = file
+	if value != "" && !strings.Contains(value, "-----BEGIN ") {
+		path := filepath.Clean(value)
+		// Certificate paths may be absolute for compatibility with Xray configs.
+		// Relative paths must remain local before the panel reads them.
+		if filepath.IsAbs(path) || filepath.IsLocal(path) {
+			if xray.CheckCertFile(path) == nil {
+				// lgtm[go/path-injection] The configured certificate/key path is intentional;
+				// CheckCertFile bounds it to a small regular file and only its digest is used.
+				if file, err := os.ReadFile(path); err == nil {
+					material = file
+				}
+			}
 		}
 	}
 	return fmt.Sprintf("%x", sha256.Sum256(material))

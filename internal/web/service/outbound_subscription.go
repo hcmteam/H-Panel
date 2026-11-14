@@ -441,7 +441,10 @@ func (s *OutboundSubscriptionService) fetchOutbounds(sub *model.OutboundSubscrip
 		req.Header.Set("X-HWID", hwid)
 	}
 
-	resp, err := client.Do(req)
+	// req.URL is the result of SanitizePublicHTTPURL above, and direct dials
+	// are re-resolved and blocked by SSRFGuardedDialContext. The explicit
+	// AllowPrivate option is an operator-controlled exception.
+	resp, err := client.Do(req) // lgtm[go/ssrf]
 	if err != nil {
 		return nil, WithoutRequestURL(err)
 	}

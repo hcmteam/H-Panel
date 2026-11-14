@@ -439,7 +439,9 @@ func (j *CheckClientIpJob) recordLocalAttribution(attribution map[string][]model
 // mergeClientIps retains fresh entries and exempts currently observed live
 // connections from expiry even when their dispatch timestamps are old.
 func mergeClientIps(old, new []model.ClientIpEntry, staleCutoff int64, newAlwaysLive bool) map[string]int64 {
-	ipMap := make(map[string]int64, len(old)+len(new))
+	// Avoid adding attacker-influenced slice lengths for a capacity hint; the
+	// map grows as entries are inserted and cannot overflow an int here.
+	ipMap := make(map[string]int64)
 	for _, ipTime := range old {
 		if ipTime.Timestamp < staleCutoff {
 			continue

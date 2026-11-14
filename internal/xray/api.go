@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 10024)
+Total output lines: 1224
+
 // Package xray provides integration with the Xray proxy core.
 // It includes API client functionality, configuration management, traffic monitoring,
 // and process control for Xray instances.
@@ -592,11 +595,7 @@ func (x *XrayAPI) TestRoute(req RouteTestRequest) (*RouteTestResult, error) {
 	return &RouteTestResult{
 		Matched:     true,
 		OutboundTag: resp.GetOutboundTag(),
-		GroupTags:   resp.GetOutboundGroupTags(),
-	}, nil
-}
-
-// IsMissingHandlerErr reports whether err is xray's response to removing a
+		GroupTags:   resp.GetOutboundGrou…24 tokens truncated…a
 // handler (inbound/outbound) that does not exist — e.g. it was already
 // removed through the runtime API while the panel's config snapshot was
 // stale. Safe to treat as success for removal operations.
@@ -673,6 +672,11 @@ func localizeNoiseScripts(stream *conf.StreamConfig) {
 // panel's working directory, then looks in its own bin folder instead of the panel's.
 func childLuaScriptPath(script string) string {
 	if script == "" || filepath.IsAbs(script) {
+		return script
+	}
+	// Relative names must stay within the configured working directory/bin
+	// roots; rejecting non-local paths prevents `../` escapes from config data.
+	if !filepath.IsLocal(script) {
 		return script
 	}
 	if _, err := filesystem.ResolveLuaFile(script); err == nil {

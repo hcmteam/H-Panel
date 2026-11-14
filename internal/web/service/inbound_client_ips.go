@@ -52,7 +52,9 @@ const clientIpStaleAfterSeconds = int64(30 * 60)
 
 // mergeClientIpEntries keeps each fresh IP's maximum timestamp.
 func mergeClientIpEntries(old, incoming []model.ClientIpEntry, cutoff int64) []model.ClientIpEntry {
-	ipMap := make(map[string]int64, len(old)+len(incoming))
+	// Avoid overflowing the combined slice lengths while computing a capacity
+	// hint. The map grows as needed during insertion.
+	ipMap := make(map[string]int64)
 	for _, e := range old {
 		if e.Timestamp < cutoff {
 			continue

@@ -84,7 +84,7 @@ Drop the xray binary (`xray-windows-amd64.exe` on Windows, `xray-linux-amd64` on
 go run .
 ```
 
-Open [http://localhost:2053](http://localhost:2053) and log in with the username and password the first start prints to the terminal (`No panel user existed, so one was generated…`). Lost them? Set new ones with `go run . setting -username <user> -password <pass>`.
+Open [http://localhost:2053](http://localhost:2053) and log in with the generated credentials in `first-login.env` beside the database (the file is mode 600). Remove it after logging in. Lost them? Set new ones with `go run . setting -username <user> -password <pass>`.
 
 ### Inside VS Code
 
