@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 10024)
-Total output lines: 1224
-
 // Package xray provides integration with the Xray proxy core.
 // It includes API client functionality, configuration management, traffic monitoring,
 // and process control for Xray instances.
@@ -595,7 +592,11 @@ func (x *XrayAPI) TestRoute(req RouteTestRequest) (*RouteTestResult, error) {
 	return &RouteTestResult{
 		Matched:     true,
 		OutboundTag: resp.GetOutboundTag(),
-		GroupTags:   resp.GetOutboundGrou…24 tokens truncated…a
+		GroupTags:   resp.GetOutboundGroupTags(),
+	}, nil
+}
+
+// IsMissingHandlerErr reports whether err is xray's response to removing a
 // handler (inbound/outbound) that does not exist — e.g. it was already
 // removed through the runtime API while the panel's config snapshot was
 // stale. Safe to treat as success for removal operations.
@@ -1221,3 +1222,4 @@ func mapToSlice[T any](m map[string]*T) []*T {
 	}
 	return result
 }
+
