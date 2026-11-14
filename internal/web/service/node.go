@@ -88,7 +88,10 @@ func (s *NodeService) FetchCertFingerprint(ctx context.Context, n *model.Node) (
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext:     netsafe.SSRFGuardedDialContext,
-			TLSClientConfig: &tls.Config{},
+			// Fingerprinting is the trust-on-first-use step: self-signed node certificates must
+			// be inspectable before the operator can pin their fingerprint. The dialer remains
+			// SSRF-guarded and redirects are restricted to this same host.
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 		// The pin must be the certificate of the host asked, not of wherever it redirects.
 		CheckRedirect: runtime.NoCrossHostRedirect,
