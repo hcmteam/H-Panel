@@ -2069,7 +2069,7 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 	}
 	inbound.SubSortIndex = normalizeSubSortIndex(inbound.SubSortIndex)
 
-	if err := validateInboundBuildInput(inbound); err != nil {
+	if err := validateInboundBuildInput(inbound, s.FromNodeSync); err != nil {
 		return inbound, false, err
 	}
 	if err := validateInboundEnvRefs(inbound); err != nil {
