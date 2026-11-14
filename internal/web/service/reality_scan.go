@@ -236,7 +236,7 @@ func (s *ServerService) probeRealityAddr(dialHost string, port int, sni string, 
 	}
 
 	cfg := &tls.Config{
-		ServerName:         sni,
+		ServerName: sni,
 		// This probe measures the peer's TLS capabilities for Reality scanning;
 		// it does not authenticate or send credentials to the scanned host.
 		InsecureSkipVerify: true, // lgtm[go/disabled-certificate-check]
