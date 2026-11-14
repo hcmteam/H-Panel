@@ -56,9 +56,9 @@ type HeartbeatPatch struct {
 
 type NodeService struct{}
 
-// FetchCertFingerprint connects to the node over HTTPS without verifying the
-// certificate and returns the leaf certificate's SHA-256 as base64, so the UI
-// can offer a "fetch and pin current certificate" action.
+// FetchCertFingerprint connects to the node over verified HTTPS and
+// returns the leaf certificate's SHA-256 as base64 for the UI
+// pinning action.
 func (s *NodeService) FetchCertFingerprint(ctx context.Context, n *model.Node) (string, error) {
 	addr, err := netsafe.NormalizeHost(n.Address)
 	if err != nil {
@@ -88,7 +88,7 @@ func (s *NodeService) FetchCertFingerprint(ctx context.Context, n *model.Node) (
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext:     netsafe.SSRFGuardedDialContext,
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // lgtm[go/disabled-certificate-check]
+			TLSClientConfig: &tls.Config{},
 		},
 		// The pin must be the certificate of the host asked, not of wherever it redirects.
 		CheckRedirect: runtime.NoCrossHostRedirect,

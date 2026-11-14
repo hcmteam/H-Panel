@@ -973,11 +973,8 @@ func (s *Server) relayUDPResponses(
 	if !associations.attachResponseStop(assocID, association, stop) {
 		return
 	}
-	packetSize := s.maxUdpRelayPacketSize
-	if packetSize <= 0 || packetSize > maxSafeUdpRelayPacketSize {
-		packetSize = maxSafeUdpRelayPacketSize
-	}
-	buf := make([]byte, packetSize+263)
+	// The protocol cap is fixed; avoid sizing this allocation from request/config data.
+	buf := make([]byte, maxSocksUdpDatagramSize+1)
 	var nextPktID uint16
 	for {
 		srcAddr, respPayload, err := sess.relay.Receive(buf)

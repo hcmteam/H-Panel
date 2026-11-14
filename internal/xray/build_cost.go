@@ -135,12 +135,10 @@ func checkCertFileKeys(v any) error {
 	case map[string]any:
 		for key, child := range v {
 			if path, ok := child.(string); ok && path != "" && (strings.EqualFold(key, "certificateFile") || strings.EqualFold(key, "keyFile")) {
-				if !filepath.IsAbs(path) {
-					if !filepath.IsLocal(path) {
-						return common.NewError("certificate file path must stay within the local certificate directory")
-					}
-					path = platform.GetCertLocation(path)
+				if !filepath.IsLocal(path) {
+					return common.NewError("certificate file path must stay within the local certificate directory")
 				}
+				path = platform.GetCertLocation(path)
 				if err := CheckCertFile(path); err != nil {
 					return err
 				}

@@ -77,15 +77,10 @@ func fingerprintMaterial(value string) string {
 	material := []byte(value)
 	if value != "" && !strings.Contains(value, "-----BEGIN ") {
 		path := filepath.Clean(value)
-		// Certificate paths may be absolute for compatibility with Xray configs.
-		// Relative paths must remain local before the panel reads them.
-		if filepath.IsAbs(path) || filepath.IsLocal(path) {
-			if xray.CheckCertFile(path) == nil {
-				// lgtm[go/path-injection] The configured certificate/key path is intentional;
-				// CheckCertFile bounds it to a small regular file and only its digest is used.
-				if file, err := os.ReadFile(path); err == nil {
-					material = file
-				}
+		// Only resolve relative certificate files that remain inside the local directory.
+		if filepath.IsLocal(path) && xray.CheckCertFile(path) == nil {
+			if file, err := os.ReadFile(path); err == nil {
+				material = file
 			}
 		}
 	}
