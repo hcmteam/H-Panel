@@ -78,7 +78,11 @@ func TestInstanceFromInbound(t *testing.T) {
 }
 
 func TestStructuralFingerprintDetectsCertificateRenewalAtSamePath(t *testing.T) {
-	dir := t.TempDir()
+	dir, err := os.MkdirTemp(".", "tuic-cert-fingerprint-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
 	certPath := filepath.Join(dir, "fullchain.pem")
 	keyPath := filepath.Join(dir, "privkey.pem")
 	if err := os.WriteFile(certPath, []byte("certificate-v1"), 0o600); err != nil {
