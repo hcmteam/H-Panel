@@ -136,10 +136,10 @@ func checkCertFileKeys(v any) error {
 		for key, child := range v {
 			if path, ok := child.(string); ok && path != "" && (strings.EqualFold(key, "certificateFile") || strings.EqualFold(key, "keyFile")) {
 				if !filepath.IsLocal(path) {
-					return common.NewError("certificate file path must stay within the local certificate directory")
+					return common.NewError(localCertPathError)
 				}
 				path = platform.GetCertLocation(path)
-				if err := CheckCertFile(path); err != nil {
+				if err := checkCertFileWithinLocalDirectory(path); err != nil {
 					return err
 				}
 			}
@@ -155,6 +155,49 @@ func checkCertFileKeys(v any) error {
 		}
 	}
 	return nil
+}
+
+const localCertPathError = "TLS certificate file must be a regular file within the local certificate directory"
+
+func checkCertFileWithinLocalDirectory(path string) error {
+	root, err := filepath.Abs(platform.GetCertLocation("."))
+	if err != nil {
+		return common.NewError(localCertPathError)
+	}
+	candidate, err := filepath.Abs(path)
+	if err != nil || !pathIsWithin(root, candidate) {
+		return common.NewError(localCertPathError)
+	}
+
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return CheckCertFile(path)
+		}
+		return common.NewError(localCertPathError)
+	}
+	resolvedCandidate, err := filepath.EvalSymlinks(candidate)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return common.NewError(localCertPathError)
+		}
+		// The file may be created later by the operator. Resolve the parent now
+		// so a symlinked directory cannot escape the configured certificate root.
+		parent, parentErr := filepath.EvalSymlinks(filepath.Dir(candidate))
+		if parentErr == nil && pathIsWithin(resolvedRoot, parent) {
+			return nil
+		}
+		return common.NewError(localCertPathError)
+	}
+	if !pathIsWithin(resolvedRoot, resolvedCandidate) {
+		return common.NewError(localCertPathError)
+	}
+	return CheckCertFile(resolvedCandidate)
+}
+
+func pathIsWithin(root, candidate string) bool {
+	relative, err := filepath.Rel(root, candidate)
+	return err == nil && relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator))
 }
 
 // CheckCertFile refuses a path that exists but is a device, FIFO or oversized file; a
