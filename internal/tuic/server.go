@@ -19,6 +19,7 @@ import (
 	"github.com/xtls/xray-core/transport/internet/hysteria/congestion/bbr"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/logger"
+	"github.com/mhsanaei/3x-ui/v3/internal/xray"
 )
 
 // Server is an in-process native Go TUIC v5 server terminating QUIC
@@ -1152,8 +1153,13 @@ func loadCertificate(certInput, keyInput string) (tls.Certificate, error) {
 	if strings.Contains(certInput, "-----BEGIN CERTIFICATE-----") {
 		return tls.X509KeyPair([]byte(certInput), []byte(keyInput))
 	}
-	// Inbound saves validate pushed certificate paths before they reach the runtime.
-	// Keep loading here delegated to Xray so local operators may use absolute cert paths.
+	// Certificate paths may point outside the local cert directory for operator-managed
+	// inbounds, so keep the size/type check while preserving absolute path support.
+	for _, path := range []string{certInput, keyInput} {
+		if err := xray.CheckCertFile(path); err != nil {
+			return tls.Certificate{}, err
+		}
+	}
 	return tls.LoadX509KeyPair(certInput, keyInput)
 }
 
