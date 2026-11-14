@@ -715,12 +715,12 @@ func canonicalizeStreamNetworkKey(streamSettings string) string {
 
 // validateInboundBuildInput refuses what xray-core's in-process build would expand without
 // bound; certificate paths are checked only where this host is the one opening them.
-func validateInboundBuildInput(inbound *model.Inbound) error {
+func validateInboundBuildInput(inbound *model.Inbound, fromNodeSync bool) error {
 	if err := xray.CheckStreamBuildCost([]byte(inbound.StreamSettings)); err != nil {
 		return err
 	}
-	if inbound.NodeID != nil {
-		return nil
+	if !fromNodeSync {
+		return nil // local operator-configured absolute certificate paths remain supported
 	}
 	return xray.CheckConfigCertFiles([]byte(inbound.StreamSettings))
 }
@@ -1317,7 +1317,7 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 	if err := validateInboundEnvRefs(inbound); err != nil {
 		return inbound, false, err
 	}
-	if err := validateInboundBuildInput(inbound); err != nil {
+	if err := validateInboundBuildInput(inbound, s.FromNodeSync); err != nil {
 		return inbound, false, err
 	}
 	if err := validateFinalMaskRealityCombo(inbound.StreamSettings); err != nil {
