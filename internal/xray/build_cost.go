@@ -231,7 +231,7 @@ func CheckCertFile(path string) error {
 	// preserves that existing operator-configured path behavior.
 
 	// codeql[go/path-injection] Absolute paths are operator-configured; pushed paths are confined earlier.
-	info, err := os.Stat(path)
+	info, err := os.Stat(path) // lgtm[go/path-injection]
 	if err != nil {
 		return nil
 	}
