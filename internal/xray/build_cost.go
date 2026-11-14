@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/util/common"
@@ -196,8 +197,16 @@ func checkCertFileWithinLocalDirectory(path string) error {
 }
 
 func pathIsWithin(root, candidate string) bool {
-	relative, err := filepath.Rel(root, candidate)
-	return err == nil && relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator))
+	root = filepath.Clean(root)
+	candidate = filepath.Clean(candidate)
+	if root == candidate {
+		return true
+	}
+	prefix := strings.TrimSuffix(root, string(os.PathSeparator)) + string(os.PathSeparator)
+	if runtime.GOOS == "windows" {
+		return len(candidate) > len(prefix) && strings.EqualFold(candidate[:len(prefix)], prefix)
+	}
+	return strings.HasPrefix(candidate, prefix)
 }
 
 // CheckCertFile refuses a path that exists but is a device, FIFO or oversized file; a
