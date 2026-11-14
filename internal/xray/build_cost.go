@@ -230,6 +230,7 @@ func CheckCertFile(path string) error {
 	// inputs are confined in CheckConfigCertFiles before file reads; this metadata check
 	// preserves that existing operator-configured path behavior.
 
+	// codeql[go/path-injection] Absolute paths are operator-configured; pushed paths are confined earlier.
 	info, err := os.Stat(path)
 	if err != nil {
 		return nil
