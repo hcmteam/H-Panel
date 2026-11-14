@@ -185,6 +185,9 @@ func checkCertFileWithinLocalDirectory(path string) error {
 	}
 	defer certRoot.Close()
 
+	// lgtm [go/path-injection]
+	// The relative path is checked with filepath.IsLocal and opened through os.Root,
+	// which prevents traversal and symlink escapes from the configured certificate root.
 	file, err := certRoot.Open(relative)
 	if err != nil {
 		if os.IsNotExist(err) {
