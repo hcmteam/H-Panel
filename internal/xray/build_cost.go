@@ -215,10 +215,10 @@ func CheckCertFile(path string) error {
 	if path == "" {
 		return nil
 	}
-	// codeql[go/path-injection] Xray supports operator-configured absolute certificate paths.
-	// Untrusted Xray build inputs are confined in CheckConfigCertFiles before file reads;
-	// this metadata check preserves the existing operator-configured path behavior.
-	info, err := os.Stat(path)
+	// Xray supports operator-configured absolute certificate paths. Untrusted Xray build
+	// inputs are confined in CheckConfigCertFiles before file reads; this metadata check
+	// preserves that existing operator-configured path behavior.
+	info, err := os.Stat(path) // lgtm[go/path-injection]
 	if err != nil {
 		return nil
 	}
