@@ -170,7 +170,10 @@ func checkCertFileWithinLocalDirectory(path string) error {
 		return common.NewError(localCertPathError)
 	}
 	relative, err := filepath.Rel(root, candidate)
-	if err != nil || !filepath.IsLocal(relative) {
+	if err != nil {
+		return common.NewError(localCertPathError)
+	}
+	if !filepath.IsLocal(relative) {
 		return common.NewError(localCertPathError)
 	}
 
@@ -185,7 +188,6 @@ func checkCertFileWithinLocalDirectory(path string) error {
 	}
 	defer certRoot.Close()
 
-	// codeql[go/path-injection] filepath.IsLocal and os.Root.Open confine this path.
 	file, err := certRoot.Open(relative)
 	if err != nil {
 		if os.IsNotExist(err) {
