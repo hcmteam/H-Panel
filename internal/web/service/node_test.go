@@ -261,7 +261,7 @@ func TestFilterNodeSnapshotKeepsAdoptedAlias(t *testing.T) {
 
 // The probe builds a transport per call; what it parks would stay open for as long
 // as the node, an untrusted peer, keeps the connection.
-func TestFetchCertFingerprintLeavesNoIdleConnection(t *testing.T) {
+func TestFetchCertFingerprintRejectsUntrustedCertAndLeavesNoIdleConnection(t *testing.T) {
 	var open atomic.Int32
 	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	server.Config.ConnState = func(_ net.Conn, state http.ConnState) {
@@ -277,8 +277,8 @@ func TestFetchCertFingerprintLeavesNoIdleConnection(t *testing.T) {
 	u, _ := url.Parse(server.URL)
 	port, _ := strconv.Atoi(u.Port())
 	node := &model.Node{Scheme: "https", Address: u.Hostname(), Port: port, AllowPrivateAddress: true}
-	if _, err := (&NodeService{}).FetchCertFingerprint(context.Background(), node); err != nil {
-		t.Fatalf("FetchCertFingerprint: %v", err)
+	if _, err := (&NodeService{}).FetchCertFingerprint(context.Background(), node); err == nil {
+		t.Fatal("FetchCertFingerprint accepted an untrusted self-signed certificate")
 	}
 	deadline := time.Now().Add(2 * time.Second)
 	for open.Load() != 0 && time.Now().Before(deadline) {
